@@ -23,16 +23,14 @@ GRID = {
 function init_grid(rows, cols)
   GRID.rows = rows
   GRID.cols = cols
-  local cw = GAME.width / cols
-  local ch = GAME.height / rows
-  GRID.cell = math.min(cw, ch)
-  local total_w = GRID.cell * cols
-  local total_h = GRID.cell * rows
-  GRID.offset_x = (GAME.width - total_w) / 2
-  GRID.offset_y = (GAME.height - total_h) / 2
-  GRID.scale = GRID.cell / (TURTLE.body_yr * TURTLE.fit_factor)
-  local half = (TURTLE.body_yr + TURTLE.head_r) * GRID.scale
-  GRID.bump_dist = GRID.cell / 2 - half
+  local w, h = gfx.getDimensions()
+  GRID.cell = math.min(w / cols, h / rows)
+  GRID.offset_x = (w - GRID.cell * cols) / 2
+  GRID.offset_y = (h - GRID.cell * rows) / 2
+  local ff = TURTLE.fit_factor
+  GRID.scale = GRID.cell / (TURTLE.body_yr * ff)
+  local full = TURTLE.body_yr + TURTLE.head_r
+  GRID.bump_dist = GRID.cell / 2 - full * GRID.scale
 end
 
 function cell_top_left(col, row)
@@ -53,7 +51,6 @@ GS = {
   init = false,
   grid = nil,
   goals = { },
-  tf = nil
 }
 
 -- Parsing: read the maze strings to find the turtle
@@ -106,14 +103,6 @@ function check_goal()
   end
 end
 
--- Scale to fit window
-
-function update_scale()
-  local w, h = gfx.getDimensions()
-  GS.tf = love.math.newTransform()
-  GS.tf:scale(w / GAME.width, h / GAME.height)
-end
-
 -- Init
 
 function reset_level()
@@ -123,7 +112,6 @@ end
 
 function ensure_init()
   if not GS.init then
-    update_scale()
     reset_level()
     GS.init = true
   end
@@ -172,7 +160,13 @@ function execute_next()
   end
 end
 
-function finish_move_anim(a)
+ANIM_FINISHERS = { }
+
+function ANIM_FINISHERS.turn(a)
+  turtle.dir = a.target_dir
+end
+
+function ANIM_FINISHERS.move(a)
   turtle.col = a.target_col
   turtle.row = a.target_row
   if a.move_cmd == "F" then
@@ -186,27 +180,20 @@ function finish_move_anim(a)
   check_goal()
 end
 
-function finish_bump_anim(a)
+function ANIM_FINISHERS.bump(a)
   turtle.color = Color.red
   sfx.lose()
   start_anim("fail", ANIM.fail_pause)
   turtle.anim.move_cmd = a.move_cmd
 end
 
+ANIM_FINISHERS.fail = reset_level
+ANIM_FINISHERS.win = love.event.quit
+
 function finish_anim()
   local a = turtle.anim
   turtle.anim = nil
-  if a.kind == "move" then
-    finish_move_anim(a)
-  elseif a.kind == "bump" then
-    finish_bump_anim(a)
-  elseif a.kind == "turn" then
-    turtle.dir = a.target_dir
-  elseif a.kind == "fail" then
-    reset_level()
-  elseif a.kind == "win" then
-    love.event.quit()
-  end
+  ANIM_FINISHERS[a.kind](a)
 end
 
 -- Update
@@ -240,10 +227,7 @@ end
 
 function love.draw()
   if GS.init then
-    gfx.push()
-    gfx.applyTransform(GS.tf)
     draw_scene()
-    gfx.pop()
   end
 end
 
@@ -257,6 +241,6 @@ end
 
 function love.resize()
   if GS.init then
-    update_scale()
+    init_grid(GRID.rows, GRID.cols)
   end
 end

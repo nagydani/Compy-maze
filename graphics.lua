@@ -6,16 +6,17 @@ gfx = love.graphics
 
 -- Maze drawing
 
-function draw_background()
-  gfx.setColor(Color[Color.white])
-  gfx.rectangle("fill", 0, 0, GAME.width, GAME.height)
+function draw_walls()
+  local w, h = gfx.getDimensions()
+  gfx.setColor(Color[Color.blue + Color.bright])
+  gfx.rectangle("fill", 0, 0, w, h)
 end
 
-function draw_walls()
-  gfx.setColor(Color[Color.blue + Color.bright])
+function draw_cells()
+  gfx.setColor(Color[Color.white])
   for r, row in ipairs(GS.grid) do
     for c = 1, #row do
-      if row:sub(c, c) == "#" then
+      if row:sub(c, c) ~= "#" then
         local x, y = cell_top_left(c, r)
         gfx.rectangle("fill", x, y, GRID.cell, GRID.cell)
       end
@@ -183,8 +184,8 @@ end
 -- Draw everything on screen
 
 function draw_scene()
-  draw_background()
   draw_walls()
+  draw_cells()
   draw_goals()
   draw_traces()
   local x, y = current_pos()

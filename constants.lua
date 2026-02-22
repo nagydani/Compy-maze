@@ -1,14 +1,5 @@
 -- constants.lua
 
--- Game settings and parameters
-
--- Screen size
-
-GAME = {
-  width = 640,
-  height = 480
-}
-
 -- Animation durations in seconds
 
 ANIM = {
