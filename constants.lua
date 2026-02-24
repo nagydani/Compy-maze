@@ -22,3 +22,5 @@ TURTLE = {
   leg_angle = math.pi / 4,
   fit_factor = 5
 }
+
+LEGEND = readfile("legend.txt")

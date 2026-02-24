@@ -50,15 +50,17 @@ end
 
 function draw_traces()
   local w = TURTLE.head_r * GRID.scale * 2
+  local r = w / 2
   gfx.setColor(Color[Color.cyan])
   gfx.setLineWidth(w)
   for _, t in ipairs(turtle.traces) do
     local x1, y1 = cell_center(t.c1, t.r1)
     local x2, y2 = cell_center(t.c2, t.r2)
     gfx.line(x1, y1, x2, y2)
+    gfx.circle("fill", x1, y1, r)
+    gfx.circle("fill", x2, y2, r)
   end
   draw_active_trace()
-  gfx.setLineWidth(1)
 end
 
 -- Turtle drawing
@@ -181,6 +183,17 @@ function current_angle()
   return DIR_ANGLES[turtle.dir]
 end
 
+-- Show controls legend in the bottom right corner
+
+function draw_legend()
+  local w, h = gfx.getDimensions()
+  local font = gfx.getFont()
+  local fh = font:getHeight()
+  local fw = font:getWidth(LEGEND)
+  gfx.setColor(Color[Color.white])
+  gfx.print(LEGEND, (w - fw) - fh, h - fh * 4)
+end
+
 -- Draw everything on screen
 
 function draw_scene()
@@ -191,4 +204,5 @@ function draw_scene()
   local x, y = current_pos()
   local angle = current_angle()
   draw_turtle_at(x, y, angle, GRID.scale)
+  draw_legend()
 end
