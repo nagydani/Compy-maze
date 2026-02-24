@@ -8,6 +8,8 @@ require("graphics")
 
 sfx = compy.audio
 
+r = user_input()
+
 -- Grid
 
 GRID = {
@@ -220,8 +222,24 @@ end
 
 -- Main Loop
 
+function submit_commands(text)
+  for i = 1, #text do
+    local ch = text:sub(i, i)
+    if process_key(ch) then
+      sfx.ping()
+    end
+  end
+end
+
 function love.update(dt)
   ensure_init()
+  if r:is_empty() then
+    input_code("Commands:", string.lines(""))
+  else
+    local ret = r()
+    submit_commands(string.unlines(ret))
+    write_to_input("")
+  end
   update_anim(dt)
 end
 
@@ -234,8 +252,6 @@ end
 function love.keypressed(k)
   if k == "escape" then
     love.event.quit()
-  elseif process_key(k) then
-    sfx.ping()
   end
 end
 

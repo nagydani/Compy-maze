@@ -191,7 +191,7 @@ function draw_legend()
   local fh = font:getHeight()
   local fw = font:getWidth(LEGEND)
   gfx.setColor(Color[Color.white])
-  gfx.print(LEGEND, (w - fw) - fh, h - fh * 4)
+  gfx.print(LEGEND, (w - fw) - fh, h - fh * 6)
 end
 
 -- Draw everything on screen
