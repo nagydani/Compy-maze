@@ -5,6 +5,7 @@
 -- How each direction moves on the grid
 
 DIR_DELTA = { }
+
 DIR_DELTA.N = {
   x = 0,
   y = -1
@@ -87,7 +88,7 @@ end
 
 -- Command queue
 
-function process_key(k)
+function process_cmd(k)
   local cmd = string.upper(k)
   if DIR_DELTA[cmd]
        or cmd == "L"

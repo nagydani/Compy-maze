@@ -8,8 +8,6 @@ require("graphics")
 
 sfx = compy.audio
 
-r = user_input()
-
 -- Grid
 
 GRID = {
@@ -19,7 +17,8 @@ GRID = {
   rows = 0,
   cols = 0,
   scale = 0,
-  bump_dist = 0
+  bump_dist = 0,
+  trace_r = 0
 }
 
 function init_grid(rows, cols)
@@ -33,6 +32,7 @@ function init_grid(rows, cols)
   GRID.scale = GRID.cell / (TURTLE.body_yr * ff)
   local full = TURTLE.body_yr + TURTLE.head_r
   GRID.bump_dist = GRID.cell / 2 - full * GRID.scale
+  GRID.trace_r = TURTLE.head_r * GRID.scale
 end
 
 function cell_top_left(col, row)
@@ -53,6 +53,7 @@ GS = {
   init = false,
   grid = nil,
   goals = { },
+  input = user_input()
 }
 
 -- Parsing: read the maze strings to find the turtle
@@ -225,7 +226,7 @@ end
 function submit_commands(text)
   for i = 1, #text do
     local ch = text:sub(i, i)
-    if process_key(ch) then
+    if process_cmd(ch) then
       sfx.ping()
     end
   end
@@ -233,10 +234,10 @@ end
 
 function love.update(dt)
   ensure_init()
-  if r:is_empty() then
-    input_code("Commands:", string.lines(""))
+  if GS.input:is_empty() then
+    input_text("Commands:", string.lines(""))
   else
-    local ret = r()
+    local ret = GS.input()
     submit_commands(string.unlines(ret))
     write_to_input("")
   end
