@@ -49,16 +49,14 @@ function draw_active_trace()
 end
 
 function draw_traces()
-  local w = TURTLE.head_r * GRID.scale * 2
-  local r = w / 2
   gfx.setColor(Color[Color.cyan])
-  gfx.setLineWidth(w)
+  gfx.setLineWidth(GRID.trace_r * 2)
   for _, t in ipairs(turtle.traces) do
     local x1, y1 = cell_center(t.c1, t.r1)
     local x2, y2 = cell_center(t.c2, t.r2)
     gfx.line(x1, y1, x2, y2)
-    gfx.circle("fill", x1, y1, r)
-    gfx.circle("fill", x2, y2, r)
+    gfx.circle("fill", x1, y1, GRID.trace_r)
+    gfx.circle("fill", x2, y2, GRID.trace_r)
   end
   draw_active_trace()
 end
@@ -161,14 +159,23 @@ end
 
 -- Turtle position for the current frame
 
+ANIM_DRAW_POS = { }
+
+ANIM_DRAW_POS.move = anim_move_pos
+
+function ANIM_DRAW_POS.bump()
+  return bump_pos(anim_progress())
+end
+
+function ANIM_DRAW_POS.fail()
+  return bump_pos(1)
+end
+
 function current_pos()
   local a = turtle.anim
-  if a and a.kind == "move" then
-    return anim_move_pos()
-  elseif a and a.kind == "bump" then
-    return bump_pos(anim_progress())
-  elseif a and a.kind == "fail" then
-    return bump_pos(1)
+  local fn = a and ANIM_DRAW_POS[a.kind]
+  if fn then
+    return fn()
   end
   return cell_center(turtle.col, turtle.row)
 end
@@ -190,8 +197,10 @@ function draw_legend()
   local font = gfx.getFont()
   local fh = font:getHeight()
   local fw = font:getWidth(LEGEND)
+  local _, n = LEGEND:gsub("\n", "")
+  local th = fh * (n + 1)
   gfx.setColor(Color[Color.white])
-  gfx.print(LEGEND, (w - fw) - fh, h - fh * 4)
+  gfx.print(LEGEND, (w - fw) - fh, (h - th) - fh)
 end
 
 -- Draw everything on screen
