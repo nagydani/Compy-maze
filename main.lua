@@ -5,6 +5,7 @@ require("constants")
 require("maze")
 require("turtle")
 require("graphics")
+require("script")
 
 sfx = compy.audio
 
@@ -116,6 +117,7 @@ end
 function ensure_init()
   if not GS.init then
     reset_level()
+    input_text("Commands:", string.lines(""))
     GS.init = true
   end
 end
@@ -223,23 +225,17 @@ end
 
 -- Main Loop
 
-function submit_commands(text)
-  for i = 1, #text do
-    local ch = text:sub(i, i)
-    if process_cmd(ch) then
-      sfx.ping()
-    end
-  end
-end
-
 function love.update(dt)
   ensure_init()
-  if GS.input:is_empty() then
-    input_text("Commands:", string.lines(""))
-  else
+  if not GS.input:is_empty() then
     local ret = GS.input()
-    submit_commands(string.unlines(ret))
-    write_to_input("")
+    local text = string.unlines(ret)
+    if process_input(string.lines(text)) then
+      input_text("Commands:", string.lines(""))
+    else
+      sfx.wrong()
+      input_text("Commands:", string.lines(text))
+    end
   end
   update_anim(dt)
 end
