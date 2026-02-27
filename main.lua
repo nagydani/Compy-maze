@@ -228,14 +228,13 @@ end
 function love.update(dt)
   ensure_init()
   if not GS.input:is_empty() then
-    local ret = GS.input()
-    local text = string.unlines(ret)
+    local text = string.unlines(GS.input())
     if process_input(string.lines(text)) then
-      input_text("Commands:", string.lines(""))
+      text = ""
     else
       sfx.wrong()
-      input_text("Commands:", string.lines(text))
     end
+    input_text("Commands:", string.lines(text))
   end
   update_anim(dt)
 end
