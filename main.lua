@@ -5,6 +5,8 @@ require("constants")
 require("maze")
 require("turtle")
 require("graphics")
+require("keyboard_graphics")
+require("macro")
 
 sfx = compy.audio
 
@@ -236,8 +238,15 @@ end
 function love.keypressed(k)
   if k == "escape" then
     love.event.quit()
-  elseif process_key(k) then
-    sfx.ping()
+  else
+    handle_key(k)
+  end
+end
+
+function love.keyreleased(k)
+  if SHIFT_KEYS[k] then
+    macro_state.shift_held = false
+    finish_recording()
   end
 end
 

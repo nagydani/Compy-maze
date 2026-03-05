@@ -24,3 +24,7 @@ TURTLE = {
 }
 
 LEGEND = readfile("legend.txt")
+
+-- Keyboard macro limits
+
+MAX_MACRO_LEN = 7

@@ -205,6 +205,42 @@ end
 
 -- Draw everything on screen
 
+function draw_dim()
+  local w, h = gfx.getDimensions()
+  gfx.setColor(0, 0, 0, 0.5)
+  gfx.rectangle("fill", 0, 0, w, h)
+end
+
+function draw_macro_name(x, y)
+  local name = macro_state.name:lower()
+  key_bg[name] = Color[Color.blue]
+  draw_key(x, y, name)
+end
+
+function draw_macro_body(x, y)
+  key_bg = { }
+  for _, k in ipairs(macro_state.body) do
+    local lk = k:lower()
+    draw_key(x, y, lk)
+    x = x + width[lk] + SCALE
+  end
+end
+
+function draw_macro_ui()
+  if macro_state.shift_held then
+    draw_dim()
+  end
+  if not macro_state.recording then
+    return 
+  end
+  local _, h = gfx.getDimensions()
+  local name = macro_state.name:lower()
+  local m = STD_H * SCALE
+  local y = (h - height[name]) / 2
+  draw_macro_name(m, y)
+  draw_macro_body(m, y + height[name] + SCALE)
+end
+
 function draw_scene()
   draw_walls()
   draw_cells()
@@ -214,4 +250,5 @@ function draw_scene()
   local angle = current_angle()
   draw_turtle_at(x, y, angle, GRID.scale)
   draw_legend()
+  draw_macro_ui()
 end
