@@ -219,8 +219,14 @@ end
 
 function draw_macro_body(x, y)
   key_bg = { }
+  local w = gfx.getDimensions()
+  local start_x = x
   for _, k in ipairs(macro_state.body) do
     local lk = k:lower()
+    if w < x + width[lk] then
+      x = start_x
+      y = y + height[lk] + SCALE
+    end
     draw_key(x, y, lk)
     x = x + width[lk] + SCALE
   end
