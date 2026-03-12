@@ -55,25 +55,40 @@ GS = {
   init = false,
   grid = nil,
   goals = { },
+  boxes = { }
 }
 
 -- Parsing: read the maze strings to find the turtle
 
+CELL_PARSERS = { }
+
+CELL_PARSERS["*"] = function(c, r)
+  table.insert(GS.goals, {
+    col = c, row = r, radius = 1
+  })
+end
+
+CELL_PARSERS["B"] = function(c, r)
+  table.insert(GS.boxes, {
+    col = c, row = r
+  })
+end
+
 function parse_cell(ch, c, r)
   if DIR_DELTA[ch] then
     turtle_reset(c, r, ch)
-  elseif ch == "*" then
-    table.insert(GS.goals, {
-      col = c,
-      row = r,
-      radius = 1
-    })
+    return 
+  end
+  local fn = CELL_PARSERS[ch]
+  if fn then
+    fn(c, r)
   end
 end
 
 function parse_maze()
   GS.grid = maze
   GS.goals = { }
+  GS.boxes = { }
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -92,6 +107,28 @@ function is_wall(col, row)
   end
   local ch = GS.grid[row]:sub(col, col)
   return ch == "#"
+end
+
+function box_at(col, row)
+  for _, b in ipairs(GS.boxes) do
+    if b.col == col and b.row == row then
+      return b
+    end
+  end
+end
+
+function push_dir(cmd)
+  if cmd == "B" then
+    return OPPOSITE_DIR[turtle.dir]
+  end
+  return turtle.dir
+end
+
+function can_push(col, row, dir)
+  local d = DIR_DELTA[dir]
+  local tc, tr = col + d.x, row + d.y
+  return not is_wall(tc, tr)
+       and not box_at(tc, tr)
 end
 
 function check_goal()
@@ -141,18 +178,51 @@ function move_cmd_target(cmd)
   return turtle.col + d.x, turtle.row + d.y
 end
 
-function start_move(cmd)
-  local tc, tr = move_cmd_target(cmd)
-  if is_wall(tc, tr) then
-    local t = ANIM.move_time * ANIM.bump_frac
-    start_anim("bump", t)
-    turtle.anim.move_cmd = cmd
-    return 
-  end
+function start_bump(cmd)
+  local t = ANIM.move_time * ANIM.bump_frac
+  start_anim("bump", t)
+  turtle.anim.move_cmd = cmd
+end
+
+function start_forward(cmd, tc, tr)
   start_anim("move", ANIM.move_time)
   turtle.anim.target_col = tc
   turtle.anim.target_row = tr
   turtle.anim.move_cmd = cmd
+end
+
+function start_push(cmd, box)
+  local d = DIR_DELTA[push_dir(cmd)]
+  local t = ANIM.move_time * ANIM.bump_frac
+  start_anim("push", t)
+  turtle.anim.move_cmd = cmd
+  turtle.anim.target_col = box.col
+  turtle.anim.target_row = box.row
+  turtle.anim.box = box
+  turtle.anim.box_tc = box.col + d.x
+  turtle.anim.box_tr = box.row + d.y
+end
+
+function try_push(cmd, box, tc, tr)
+  if can_push(tc, tr, push_dir(cmd)) then
+    start_push(cmd, box)
+  else
+    start_bump(cmd)
+  end
+end
+
+function start_move(cmd)
+  local tc, tr = move_cmd_target(cmd)
+  if is_wall(tc, tr) then
+    start_bump(cmd)
+    return 
+  end
+  local box = box_at(tc, tr)
+  if not box then
+    start_forward(cmd, tc, tr)
+    return 
+  end
+  try_push(cmd, box, tc, tr)
 end
 
 function execute_next()
@@ -164,13 +234,7 @@ function execute_next()
   end
 end
 
-ANIM_FINISHERS = { }
-
-function ANIM_FINISHERS.turn(a)
-  turtle.dir = a.target_dir
-end
-
-function ANIM_FINISHERS.move(a)
+function finish_move(a)
   turtle.col = a.target_col
   turtle.row = a.target_row
   if a.move_cmd == "F" then
@@ -181,6 +245,16 @@ function ANIM_FINISHERS.move(a)
       r2 = a.target_row
     })
   end
+end
+
+ANIM_FINISHERS = { }
+
+function ANIM_FINISHERS.turn(a)
+  turtle.dir = a.target_dir
+end
+
+function ANIM_FINISHERS.move(a)
+  finish_move(a)
   check_goal()
 end
 
@@ -189,6 +263,24 @@ function ANIM_FINISHERS.bump(a)
   sfx.lose()
   start_anim("fail", ANIM.fail_pause)
   turtle.anim.move_cmd = a.move_cmd
+end
+
+function start_push_back(a)
+  sfx.jump()
+  local t = ANIM.move_time * ANIM.bump_frac
+  start_anim("push_back", t)
+  turtle.anim.move_cmd = a.move_cmd
+end
+
+function ANIM_FINISHERS.push(a)
+  finish_move(a)
+  a.box.col = a.box_tc
+  a.box.row = a.box_tr
+  start_push_back(a)
+end
+
+function ANIM_FINISHERS.push_back()
+  check_goal()
 end
 
 ANIM_FINISHERS.fail = reset_level

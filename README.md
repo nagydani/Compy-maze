@@ -43,6 +43,16 @@ a sound, and the maze resets so you can try again.
 When you reach the red circle, you hear a victory
 sound and the circle disappears.
 
+## Pushing Boxes
+
+Some levels have yellow boxes. You can push a box by
+walking into it. The box moves one square in the
+direction you are pushing.
+
+A box can only be pushed if the square behind it is
+empty. If it cannot move, the turtle bumps against it
+like a wall.
+
 ## Recording Shortcuts
 
 You can save a sequence of keys as a shortcut:
@@ -58,7 +68,7 @@ Now just press your shortcut key to replay the whole
 sequence!
 
 To erase a shortcut, hold Shift, press the key, and
-
+release Shift right away without adding any keys.
 
 You cannot use N, E, S, W, F, B, L or R as shortcut
 names — those are already commands.

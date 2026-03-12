@@ -171,6 +171,12 @@ function ANIM_DRAW_POS.fail()
   return bump_pos(1)
 end
 
+ANIM_DRAW_POS.push = ANIM_DRAW_POS.bump
+
+function ANIM_DRAW_POS.push_back()
+  return bump_pos(1 - anim_progress())
+end
+
 function current_pos()
   local a = turtle.anim
   local fn = a and ANIM_DRAW_POS[a.kind]
@@ -232,6 +238,14 @@ function draw_macro_body(x, y)
   end
 end
 
+function draw_boxes()
+  gfx.setColor(Color[Color.yellow])
+  for _, b in ipairs(GS.boxes) do
+    local x, y = cell_top_left(b.col, b.row)
+    gfx.rectangle("fill", x, y, GRID.cell, GRID.cell)
+  end
+end
+
 function draw_macro_ui()
   if macro_state.shift_held then
     draw_dim()
@@ -250,6 +264,7 @@ end
 function draw_scene()
   draw_walls()
   draw_cells()
+  draw_boxes()
   draw_goals()
   draw_traces()
   local x, y = current_pos()
