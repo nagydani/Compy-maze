@@ -172,6 +172,7 @@ function ANIM_DRAW_POS.fail()
 end
 
 ANIM_DRAW_POS.push = ANIM_DRAW_POS.bump
+ANIM_DRAW_POS.push_slide = anim_move_pos
 
 function ANIM_DRAW_POS.push_back()
   return bump_pos(1 - anim_progress())
@@ -238,10 +239,23 @@ function draw_macro_body(x, y)
   end
 end
 
+function box_draw_pos(b)
+  local a = turtle.anim
+  if a and a.kind == "push_slide"
+       and a.box == b
+  then
+    local p = anim_progress()
+    local x1, y1 = cell_top_left(b.col, b.row)
+    local x2, y2 = cell_top_left(a.box_tc, a.box_tr)
+    return x1 + (x2 - x1) * p, y1 + (y2 - y1) * p
+  end
+  return cell_top_left(b.col, b.row)
+end
+
 function draw_boxes()
   gfx.setColor(Color[Color.yellow])
   for _, b in ipairs(GS.boxes) do
-    local x, y = cell_top_left(b.col, b.row)
+    local x, y = box_draw_pos(b)
     gfx.rectangle("fill", x, y, GRID.cell, GRID.cell)
   end
 end

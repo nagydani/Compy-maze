@@ -266,13 +266,23 @@ function ANIM_FINISHERS.bump(a)
 end
 
 function start_push_back(a)
-  sfx.jump()
   local t = ANIM.move_time * ANIM.bump_frac
   start_anim("push_back", t)
   turtle.anim.move_cmd = a.move_cmd
 end
 
 function ANIM_FINISHERS.push(a)
+  sfx.jump()
+  start_anim("push_slide", ANIM.move_time)
+  turtle.anim.move_cmd = a.move_cmd
+  turtle.anim.target_col = a.target_col
+  turtle.anim.target_row = a.target_row
+  turtle.anim.box = a.box
+  turtle.anim.box_tc = a.box_tc
+  turtle.anim.box_tr = a.box_tr
+end
+
+function ANIM_FINISHERS.push_slide(a)
   finish_move(a)
   a.box.col = a.box_tc
   a.box.row = a.box_tr
