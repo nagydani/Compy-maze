@@ -20,7 +20,8 @@ GRID = {
   cols = 0,
   scale = 0,
   bump_dist = 0,
-  trace_r = 0
+  trace_r = 0,
+  push_path = 0
 }
 
 function init_grid(rows, cols)
@@ -35,6 +36,7 @@ function init_grid(rows, cols)
   local full = TURTLE.body_yr + TURTLE.head_r
   GRID.bump_dist = GRID.cell / 2 - full * GRID.scale
   GRID.trace_r = TURTLE.head_r * GRID.scale
+  GRID.push_path = GRID.bump_dist + GRID.cell + GRID.bump_dist
 end
 
 function cell_top_left(col, row)
@@ -193,8 +195,10 @@ end
 
 function start_push(cmd, box)
   local d = DIR_DELTA[push_dir(cmd)]
-  local t = ANIM.move_time * ANIM.bump_frac
-  start_anim("push", t)
+  start_anim(
+    "push",
+    GRID.push_path * ANIM.move_time / GRID.cell
+  )
   turtle.anim.move_cmd = cmd
   turtle.anim.target_col = box.col
   turtle.anim.target_row = box.row
@@ -265,31 +269,11 @@ function ANIM_FINISHERS.bump(a)
   turtle.anim.move_cmd = a.move_cmd
 end
 
-function start_push_back(a)
-  local t = ANIM.move_time * ANIM.bump_frac
-  start_anim("push_back", t)
-  turtle.anim.move_cmd = a.move_cmd
-end
-
 function ANIM_FINISHERS.push(a)
-  sfx.jump()
-  start_anim("push_slide", ANIM.move_time)
-  turtle.anim.move_cmd = a.move_cmd
-  turtle.anim.target_col = a.target_col
-  turtle.anim.target_row = a.target_row
-  turtle.anim.box = a.box
-  turtle.anim.box_tc = a.box_tc
-  turtle.anim.box_tr = a.box_tr
-end
-
-function ANIM_FINISHERS.push_slide(a)
   finish_move(a)
   a.box.col = a.box_tc
   a.box.row = a.box_tr
-  start_push_back(a)
-end
-
-function ANIM_FINISHERS.push_back()
+  sfx.jump()
   check_goal()
 end
 
