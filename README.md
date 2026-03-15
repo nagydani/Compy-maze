@@ -34,6 +34,16 @@ characters are ignored.
 You can type several commands at once, for example
 SSEEF, and they will run in order when you press Enter.
 
+## Pushing Boxes
+
+Some levels have yellow boxes. You can push a box by
+walking into it. The box moves one square in the
+direction you are pushing.
+
+A box can only be pushed if the square behind it is
+empty. If it cannot move, the turtle bumps against it
+like a wall.
+
 ## Repeating Commands
 
 Put a number before a command to repeat it:

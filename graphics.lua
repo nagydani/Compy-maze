@@ -39,9 +39,10 @@ end
 
 function draw_active_trace()
   local a = turtle.anim
-  if a and a.kind == "move"
-       and a.move_cmd == "F"
+  if a and a.move_cmd == "F"
+       and (a.kind == "move" or a.kind == "push")
   then
+    local x1, y1 = cell_center(a.from_col, a.from_row)
     local x1, y1 = cell_center(a.from_col, a.from_row)
     local x2, y2 = current_pos()
     gfx.line(x1, y1, x2, y2)
@@ -170,6 +171,37 @@ function ANIM_DRAW_POS.fail()
   return bump_pos(1)
 end
 
+function push_offset(p)
+  local peak = GRID.push_path - GRID.bump_dist
+  local dist = GRID.push_path * p
+  if dist < peak then
+    return dist
+  end
+  return peak - (dist - peak)
+end
+
+function push_turtle_pos()
+  local a = turtle.anim
+  local dir = push_dir(a.move_cmd)
+  local d = DIR_DELTA[dir]
+  local cx, cy = cell_center(a.from_col, a.from_row)
+  local f = push_offset(anim_progress())
+  return cx + (d.x * f), cy + (d.y * f)
+end
+
+function push_box_offset(p)
+  local dist = GRID.push_path * p - GRID.bump_dist
+  if dist < 0 then
+    return 0
+  end
+  if GRID.cell < dist then
+    return GRID.cell
+  end
+  return dist
+end
+
+ANIM_DRAW_POS.push = push_turtle_pos
+
 function current_pos()
   local a = turtle.anim
   local fn = a and ANIM_DRAW_POS[a.kind]
@@ -204,9 +236,32 @@ end
 
 -- Draw everything on screen
 
+function box_draw_pos(b)
+  local a = turtle.anim
+  if not a or a.kind ~= "push"
+       or a.box ~= b
+  then
+    return cell_top_left(b.col, b.row)
+  end
+  local dir = push_dir(a.move_cmd)
+  local d = DIR_DELTA[dir]
+  local x, y = cell_top_left(b.col, b.row)
+  local f = push_box_offset(anim_progress())
+  return x + (d.x * f), y + (d.y * f)
+end
+
+function draw_boxes()
+  gfx.setColor(Color[Color.yellow])
+  for _, b in ipairs(GS.boxes) do
+    local x, y = box_draw_pos(b)
+    gfx.rectangle("fill", x, y, GRID.cell, GRID.cell)
+  end
+end
+
 function draw_scene()
   draw_walls()
   draw_cells()
+  draw_boxes()
   draw_goals()
   draw_traces()
   local x, y = current_pos()
