@@ -57,23 +57,29 @@ GS = {
   init = false,
   grid = nil,
   goals = { },
-  boxes = { }
+  boxes = { },
+  box_map = { },
+  goal_map = { }
 }
 
 -- Parsing: read the maze strings to find the turtle
 
+function pos_key(col, row)
+  return col .. "," .. row
+end
+
 CELL_PARSERS = { }
 
 CELL_PARSERS["*"] = function(c, r)
-  table.insert(GS.goals, {
-    col = c, row = r, radius = 1
-  })
+  local goal = { col = c, row = r, radius = 1 }
+  table.insert(GS.goals, goal)
+  GS.goal_map[pos_key(c, r)] = goal
 end
 
 CELL_PARSERS["B"] = function(c, r)
-  table.insert(GS.boxes, {
-    col = c, row = r
-  })
+  local box = { col = c, row = r }
+  table.insert(GS.boxes, box)
+  GS.box_map[pos_key(c, r)] = box
 end
 
 function parse_cell(ch, c, r)
@@ -91,6 +97,8 @@ function parse_maze()
   GS.grid = maze
   GS.goals = { }
   GS.boxes = { }
+  GS.box_map = { }
+  GS.goal_map = { }
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -112,11 +120,7 @@ function is_wall(col, row)
 end
 
 function box_at(col, row)
-  for _, b in ipairs(GS.boxes) do
-    if b.col == col and b.row == row then
-      return b
-    end
-  end
+  return GS.box_map[pos_key(col, row)]
 end
 
 function push_dir(cmd)
@@ -134,16 +138,13 @@ function can_push(col, row, dir)
 end
 
 function check_goal()
-  for _, g in ipairs(GS.goals) do
-    if g.col == turtle.col
-         and g.row == turtle.row
-    then
-      start_anim("win", ANIM.win_time)
-      turtle.anim.goal = g
-      sfx.win()
-      return 
-    end
+  local g = GS.goal_map[pos_key(turtle.col, turtle.row)]
+  if not g then
+    return 
   end
+  start_anim("win", ANIM.win_time)
+  turtle.anim.goal = g
+  sfx.win()
 end
 
 -- Init
@@ -205,6 +206,7 @@ function start_push(cmd, box)
   turtle.anim.box = box
   turtle.anim.box_tc = box.col + d.x
   turtle.anim.box_tr = box.row + d.y
+  turtle.anim.touched = false
 end
 
 function try_push(cmd, box, tc, tr)
@@ -271,9 +273,10 @@ end
 
 function ANIM_FINISHERS.push(a)
   finish_move(a)
+  GS.box_map[pos_key(a.box.col, a.box.row)] = nil
   a.box.col = a.box_tc
   a.box.row = a.box_tr
-  sfx.jump()
+  GS.box_map[pos_key(a.box_tc, a.box_tr)] = a.box
   check_goal()
 end
 
@@ -288,11 +291,27 @@ end
 
 -- Update
 
+ANIM_ADVANCERS = { }
+
+function ANIM_ADVANCERS.win()
+  turtle.anim.goal.radius = 1 - anim_progress()
+end
+
+function ANIM_ADVANCERS.push()
+  if turtle.anim.touched then
+    return 
+  end
+  if GRID.bump_dist <= GRID.push_path * anim_progress() then
+    sfx.jump()
+    turtle.anim.touched = true
+  end
+end
+
 function advance_anim(dt)
   turtle.anim.time = turtle.anim.time + dt
-  if turtle.anim.kind == "win" then
-    local p = anim_progress()
-    turtle.anim.goal.radius = 1 - p
+  local fn = ANIM_ADVANCERS[turtle.anim.kind]
+  if fn then
+    fn()
   end
   if turtle.anim.duration <= turtle.anim.time then
     finish_anim()
