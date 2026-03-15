@@ -28,7 +28,7 @@ end
 
 function draw_goals()
   gfx.setColor(Color[Color.red])
-  for _, g in ipairs(GS.goals) do
+  for _, g in pairs(GS.goal_map) do
     local x, y = cell_center(g.col, g.row)
     local r = (GRID.cell / 2) * g.radius
     gfx.circle("fill", x, y, r)
@@ -279,7 +279,7 @@ end
 
 function draw_boxes()
   gfx.setColor(Color[Color.yellow])
-  for _, b in ipairs(GS.boxes) do
+  for _, b in pairs(GS.box_map) do
     local x, y = box_draw_pos(b)
     gfx.rectangle("fill", x, y, GRID.cell, GRID.cell)
   end

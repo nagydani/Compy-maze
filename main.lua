@@ -56,10 +56,8 @@ end
 GS = {
   init = false,
   grid = nil,
-  goals = { },
-  boxes = { },
-  box_map = { },
-  goal_map = { }
+  goal_map = { },
+  box_map = { }
 }
 
 -- Parsing: read the maze strings to find the turtle
@@ -71,15 +69,15 @@ function pos_key(col, row)
 end
 
 CELL_PARSERS["*"] = function(c, r)
-  local goal = { col = c, row = r, radius = 1 }
-  table.insert(GS.goals, goal)
-  GS.goal_map[pos_key(c, r)] = goal
+  GS.goal_map[pos_key(c, r)] = {
+    col = c, row = r, radius = 1
+  }
 end
 
 CELL_PARSERS["B"] = function(c, r)
-  local box = { col = c, row = r }
-  table.insert(GS.boxes, box)
-  GS.box_map[pos_key(c, r)] = box
+  GS.box_map[pos_key(c, r)] = {
+    col = c, row = r
+  }
 end
 
 function parse_cell(ch, c, r)
@@ -95,10 +93,8 @@ end
 
 function parse_maze()
   GS.grid = maze
-  GS.goals = { }
-  GS.boxes = { }
-  GS.box_map = { }
   GS.goal_map = { }
+  GS.box_map = { }
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -273,8 +269,10 @@ end
 
 function ANIM_FINISHERS.push(a)
   finish_move(a)
+  GS.box_map[pos_key(a.box.col, a.box.row)] = nil
   a.box.col = a.box_tc
   a.box.row = a.box_tr
+  GS.box_map[pos_key(a.box_tc, a.box_tr)] = a.box
   check_goal()
 end
 
