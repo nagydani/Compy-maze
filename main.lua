@@ -67,7 +67,7 @@ GS = {
 CELL_PARSERS = { }
 
 function pos_key(col, row)
-  return col .. "," .. row
+  return col + GRID.cols * row
 end
 
 CELL_PARSERS["*"] = function(c, r)
@@ -150,8 +150,8 @@ end
 -- Init
 
 function reset_level()
-  parse_maze()
   init_grid(#maze, #(maze[1]))
+  parse_maze()
 end
 
 function ensure_init()
