@@ -64,11 +64,11 @@ GS = {
 
 -- Parsing: read the maze strings to find the turtle
 
+CELL_PARSERS = { }
+
 function pos_key(col, row)
   return col .. "," .. row
 end
-
-CELL_PARSERS = { }
 
 CELL_PARSERS["*"] = function(c, r)
   local goal = { col = c, row = r, radius = 1 }
@@ -200,13 +200,13 @@ function start_push(cmd, box)
     "push",
     GRID.push_path * ANIM.move_time / GRID.cell
   )
+  sfx.jump()
   turtle.anim.move_cmd = cmd
   turtle.anim.target_col = box.col
   turtle.anim.target_row = box.row
   turtle.anim.box = box
   turtle.anim.box_tc = box.col + d.x
   turtle.anim.box_tr = box.row + d.y
-  turtle.anim.touched = false
 end
 
 function try_push(cmd, box, tc, tr)
@@ -273,10 +273,8 @@ end
 
 function ANIM_FINISHERS.push(a)
   finish_move(a)
-  GS.box_map[pos_key(a.box.col, a.box.row)] = nil
   a.box.col = a.box_tc
   a.box.row = a.box_tr
-  GS.box_map[pos_key(a.box_tc, a.box_tr)] = a.box
   check_goal()
 end
 
@@ -291,27 +289,11 @@ end
 
 -- Update
 
-ANIM_ADVANCERS = { }
-
-function ANIM_ADVANCERS.win()
-  turtle.anim.goal.radius = 1 - anim_progress()
-end
-
-function ANIM_ADVANCERS.push()
-  if turtle.anim.touched then
-    return 
-  end
-  if GRID.bump_dist <= GRID.push_path * anim_progress() then
-    sfx.jump()
-    turtle.anim.touched = true
-  end
-end
-
 function advance_anim(dt)
   turtle.anim.time = turtle.anim.time + dt
-  local fn = ANIM_ADVANCERS[turtle.anim.kind]
-  if fn then
-    fn()
+  if turtle.anim.kind == "win" then
+    local p = anim_progress()
+    turtle.anim.goal.radius = 1 - p
   end
   if turtle.anim.duration <= turtle.anim.time then
     finish_anim()
