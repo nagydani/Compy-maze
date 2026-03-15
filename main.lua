@@ -135,12 +135,11 @@ end
 
 function check_goal()
   local g = GS.goal_map[pos_key(turtle.col, turtle.row)]
-  if not g then
-    return 
+  if g then
+    start_anim("win", ANIM.win_time)
+    turtle.anim.goal = g
+    sfx.win()
   end
-  start_anim("win", ANIM.win_time)
-  turtle.anim.goal = g
-  sfx.win()
 end
 
 -- Init
@@ -197,12 +196,11 @@ function start_push(cmd, box)
     GRID.push_path * ANIM.move_time / GRID.cell
   )
   sfx.jump()
-  turtle.anim.move_cmd = cmd
-  turtle.anim.target_col = box.col
-  turtle.anim.target_row = box.row
-  turtle.anim.box = box
-  turtle.anim.box_tc = box.col + d.x
-  turtle.anim.box_tr = box.row + d.y
+  local anim, col, row = turtle.anim, box.col, box.row
+  anim.move_cmd = cmd
+  anim.target_col, anim.target_row = col, row
+  anim.box = box
+  anim.box_tc, anim.box_tr = col + d.x, row + d.y
 end
 
 function try_push(cmd, box, tc, tr)
@@ -217,14 +215,14 @@ function start_move(cmd)
   local tc, tr = move_cmd_target(cmd)
   if is_wall(tc, tr) then
     start_bump(cmd)
-    return 
+  else
+    local box = box_at(tc, tr)
+    if box then
+      try_push(cmd, box, tc, tr)
+    else
+      start_forward(cmd, tc, tr)
+    end
   end
-  local box = box_at(tc, tr)
-  if not box then
-    start_forward(cmd, tc, tr)
-    return 
-  end
-  try_push(cmd, box, tc, tr)
 end
 
 function execute_next()
