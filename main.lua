@@ -296,20 +296,15 @@ function advance_anim(dt)
   end
 end
 
-function update_anim(dt)
-  if not turtle.anim then
-    execute_next()
-  end
-  if turtle.anim then
-    advance_anim(dt)
-  end
-end
-
 -- Main Loop
 
 function love.update(dt)
   ensure_init()
-  update_anim(dt)
+  if turtle.anim then
+    advance_anim(dt)
+  else
+    execute_next()
+  end
 end
 
 function love.draw()
