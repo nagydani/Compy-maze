@@ -55,8 +55,8 @@ end
 GS = {
   init = false,
   grid = nil,
-  goals = { },
-  boxes = { },
+  goal_map = { },
+  box_map = { },
   input = user_input()
 }
 
@@ -64,16 +64,21 @@ GS = {
 
 CELL_PARSERS = { }
 
-CELL_PARSERS["*"] = function(c, r)
-  table.insert(GS.goals, {
-    col = c, row = r, radius = 1
-  })
+function pos_key(col, row)
+  return col + GRID.cols * row
 end
 
-CELL_PARSERS["B"] = function(c, r)
-  table.insert(GS.boxes, {
-    col = c, row = r
-  })
+CELL_PARSERS["*"] = function(c, r)
+  GS.goal_map[pos_key(c, r)] = {
+    col = c, row = r, radius = 1
+  }
+end
+
+function CELL_PARSERS.B(c, r)
+  GS.box_map[pos_key(c, r)] = {
+    col = c,
+    row = r
+  }
 end
 
 function parse_cell(ch, c, r)
@@ -89,8 +94,8 @@ end
 
 function parse_maze()
   GS.grid = maze
-  GS.goals = { }
-  GS.boxes = { }
+  GS.goal_map = { }
+  GS.box_map = { }
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -112,11 +117,7 @@ function is_wall(col, row)
 end
 
 function box_at(col, row)
-  for _, b in ipairs(GS.boxes) do
-    if b.col == col and b.row == row then
-      return b
-    end
-  end
+  return GS.box_map[pos_key(col, row)]
 end
 
 function push_dir(cmd)
@@ -134,23 +135,19 @@ function can_push(col, row, dir)
 end
 
 function check_goal()
-  for _, g in ipairs(GS.goals) do
-    if g.col == turtle.col
-         and g.row == turtle.row
-    then
-      start_anim("win", ANIM.win_time)
-      turtle.anim.goal = g
-      sfx.win()
-      return 
-    end
+  local g = GS.goal_map[pos_key(turtle.col, turtle.row)]
+  if g then
+    start_anim("win", ANIM.win_time)
+    turtle.anim.goal = g
+    sfx.win()
   end
 end
 
 -- Init
 
 function reset_level()
-  parse_maze()
   init_grid(#maze, #(maze[1]))
+  parse_maze()
 end
 
 function ensure_init()
@@ -200,12 +197,12 @@ function start_push(cmd, box)
     "push",
     GRID.push_path * ANIM.move_time / GRID.cell
   )
-  turtle.anim.move_cmd = cmd
-  turtle.anim.target_col = box.col
-  turtle.anim.target_row = box.row
-  turtle.anim.box = box
-  turtle.anim.box_tc = box.col + d.x
-  turtle.anim.box_tr = box.row + d.y
+  sfx.jump()
+  local anim, col, row = turtle.anim, box.col, box.row
+  anim.move_cmd = cmd
+  anim.target_col, anim.target_row = col, row
+  anim.box = box
+  anim.box_tc, anim.box_tr = col + d.x, row + d.y
 end
 
 function try_push(cmd, box, tc, tr)
@@ -220,14 +217,14 @@ function start_move(cmd)
   local tc, tr = move_cmd_target(cmd)
   if is_wall(tc, tr) then
     start_bump(cmd)
-    return 
+  else
+    local box = box_at(tc, tr)
+    if box then
+      try_push(cmd, box, tc, tr)
+    else
+      start_forward(cmd, tc, tr)
+    end
   end
-  local box = box_at(tc, tr)
-  if not box then
-    start_forward(cmd, tc, tr)
-    return 
-  end
-  try_push(cmd, box, tc, tr)
 end
 
 function execute_next()
@@ -272,9 +269,10 @@ end
 
 function ANIM_FINISHERS.push(a)
   finish_move(a)
+  GS.box_map[pos_key(a.box.col, a.box.row)] = nil
   a.box.col = a.box_tc
   a.box.row = a.box_tr
-  sfx.jump()
+  GS.box_map[pos_key(a.box_tc, a.box_tr)] = a.box
   check_goal()
 end
 
@@ -300,29 +298,29 @@ function advance_anim(dt)
   end
 end
 
-function update_anim(dt)
-  if not turtle.anim then
-    execute_next()
-  end
-  if turtle.anim then
-    advance_anim(dt)
-  end
-end
-
 -- Main Loop
+
+function process_user_input()
+  if GS.input:is_empty() then
+    return 
+  end
+  local text = string.unlines(GS.input())
+  if process_input(string.lines(text)) then
+    text = ""
+  else
+    sfx.wrong()
+  end
+  input_text("Commands:", string.lines(text))
+end
 
 function love.update(dt)
   ensure_init()
-  if not GS.input:is_empty() then
-    local text = string.unlines(GS.input())
-    if process_input(string.lines(text)) then
-      text = ""
-    else
-      sfx.wrong()
-    end
-    input_text("Commands:", string.lines(text))
+  process_user_input()
+  if turtle.anim then
+    advance_anim(dt)
+  else
+    execute_next()
   end
-  update_anim(dt)
 end
 
 function love.draw()
