@@ -146,16 +146,16 @@ function can_push(col, row, dir)
        and not box_at(tc, tr)
 end
 
-function win_level(goal)
+function win_level(goal, sound)
   start_anim("win", ANIM.win_time)
   turtle.anim.goal = goal
+  sound()
 end
 
 function check_goal()
   local g = GS.goal_map[pos_key(turtle.col, turtle.row)]
   if g then
-    win_level(g)
-    sfx.win()
+    win_level(g, sfx.win)
   end
 end
 
@@ -166,11 +166,10 @@ function check_box_goals(old_key, new_key)
   if GS.box_goal_map[new_key] then
     GS.filled_count = GS.filled_count + 1
   end
-  if 0 < GS.box_goal_count
+  if GS.box_goal_count > 0
        and GS.filled_count == GS.box_goal_count
-  then
-    win_level(nil)
-    sfx.wow()
+   then
+    win_level(nil, sfx.wow)
   end
 end
 
