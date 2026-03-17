@@ -53,6 +53,12 @@ A box can only be pushed if the square behind it is
 empty. If it cannot move, the turtle bumps against it
 like a wall.
 
+## Box Goals
+
+Some levels have cyan squares on the floor. Push
+every yellow box onto a cyan square to win! You hear
+a victory sound when all boxes are in place.
+
 ## Recording Shortcuts
 
 You can save a sequence of keys as a shortcut:

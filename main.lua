@@ -57,7 +57,8 @@ GS = {
   init = false,
   grid = nil,
   goal_map = { },
-  box_map = { }
+  box_map = { },
+  box_goal_map = { }
 }
 
 -- Parsing: read the maze strings to find the turtle
@@ -80,6 +81,12 @@ CELL_PARSERS["B"] = function(c, r)
   }
 end
 
+CELL_PARSERS["G"] = function(c, r)
+  GS.box_goal_map[pos_key(c, r)] = {
+    col = c, row = r
+  }
+end
+
 function parse_cell(ch, c, r)
   if DIR_DELTA[ch] then
     turtle_reset(c, r, ch)
@@ -95,6 +102,7 @@ function parse_maze()
   GS.grid = maze
   GS.goal_map = { }
   GS.box_map = { }
+  GS.box_goal_map = { }
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -139,6 +147,19 @@ function check_goal()
     start_anim("win", ANIM.win_time)
     turtle.anim.goal = g
     sfx.win()
+  end
+end
+
+function check_box_goals()
+  local filled = next(GS.box_goal_map) ~= nil
+  for key, _ in pairs(GS.box_goal_map) do
+    if not GS.box_map[key] then
+      filled = false
+    end
+  end
+  if filled then
+    start_anim("win", ANIM.win_time)
+    sfx.wow()
   end
 end
 
@@ -272,6 +293,9 @@ function ANIM_FINISHERS.push(a)
   a.box.row = a.box_tr
   GS.box_map[pos_key(a.box_tc, a.box_tr)] = a.box
   check_goal()
+  if not turtle.anim then
+    check_box_goals()
+  end
 end
 
 ANIM_FINISHERS.fail = reset_level
@@ -287,9 +311,10 @@ end
 
 function advance_anim(dt)
   turtle.anim.time = turtle.anim.time + dt
-  if turtle.anim.kind == "win" then
-    local p = anim_progress()
-    turtle.anim.goal.radius = 1 - p
+  if turtle.anim.kind == "win"
+       and turtle.anim.goal
+  then
+    turtle.anim.goal.radius = 1 - anim_progress()
   end
   if turtle.anim.duration <= turtle.anim.time then
     finish_anim()

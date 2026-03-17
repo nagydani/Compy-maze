@@ -285,6 +285,14 @@ function draw_boxes()
   end
 end
 
+function draw_box_goals()
+  gfx.setColor(Color[Color.cyan])
+  for _, g in pairs(GS.box_goal_map) do
+    local x, y = cell_top_left(g.col, g.row)
+    gfx.rectangle("fill", x, y, GRID.cell, GRID.cell)
+  end
+end
+
 function draw_macro_ui()
   if macro_state.shift_held then
     draw_dim()
@@ -303,6 +311,7 @@ end
 function draw_scene()
   draw_walls()
   draw_cells()
+  draw_box_goals()
   draw_goals()
   draw_traces()
   draw_boxes()
