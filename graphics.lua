@@ -229,7 +229,7 @@ function draw_legend()
   local fw = font:getWidth(LEGEND)
   local _, n = LEGEND:gsub("\n", "")
   local th = fh * (n + 1)
-  gfx.setColor(Color[Color.white])
+  gfx.setColor(Color[Color.black])
   gfx.print(LEGEND, (w - fw) - fh, ((h - th) - fh) - fh)
 end
 
@@ -249,6 +249,14 @@ function box_draw_pos(b)
   return x + (d.x * f), y + (d.y * f)
 end
 
+function draw_box_goals()
+  gfx.setColor(Color[Color.cyan])
+  for _, g in pairs(GS.box_goal_map) do
+    local x, y = cell_top_left(g.col, g.row)
+    gfx.rectangle("fill", x, y, GRID.cell, GRID.cell)
+  end
+end
+
 function draw_boxes()
   gfx.setColor(Color[Color.yellow])
   for _, b in pairs(GS.box_map) do
@@ -260,6 +268,7 @@ end
 function draw_scene()
   draw_walls()
   draw_cells()
+  draw_box_goals()
   draw_goals()
   draw_traces()
   draw_boxes()

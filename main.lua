@@ -57,6 +57,9 @@ GS = {
   grid = nil,
   goal_map = { },
   box_map = { },
+  box_goal_map = { },
+  box_goal_count = 0,
+  filled_count = 0,
   input = user_input()
 }
 
@@ -81,6 +84,13 @@ function CELL_PARSERS.B(c, r)
   }
 end
 
+CELL_PARSERS["G"] = function(c, r)
+  GS.box_goal_map[pos_key(c, r)] = {
+    col = c, row = r
+  }
+  GS.box_goal_count = GS.box_goal_count + 1
+end
+
 function parse_cell(ch, c, r)
   if DIR_DELTA[ch] then
     turtle_reset(c, r, ch)
@@ -96,6 +106,9 @@ function parse_maze()
   GS.grid = maze
   GS.goal_map = { }
   GS.box_map = { }
+  GS.box_goal_map = { }
+  GS.box_goal_count = 0
+  GS.filled_count = 0
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -134,12 +147,30 @@ function can_push(col, row, dir)
        and not box_at(tc, tr)
 end
 
+function win_level(goal, sound)
+  start_anim("win", ANIM.win_time)
+  turtle.anim.goal = goal
+  sound()
+end
+
 function check_goal()
   local g = GS.goal_map[pos_key(turtle.col, turtle.row)]
   if g then
-    start_anim("win", ANIM.win_time)
-    turtle.anim.goal = g
-    sfx.win()
+    win_level(g, sfx.win)
+  end
+end
+
+function check_box_goals(old_key, new_key)
+  if GS.box_goal_map[old_key] then
+    GS.filled_count = GS.filled_count - 1
+  end
+  if GS.box_goal_map[new_key] then
+    GS.filled_count = GS.filled_count + 1
+  end
+  if 0 < GS.box_goal_count
+       and GS.filled_count == GS.box_goal_count
+  then
+    win_level(nil, sfx.wow)
   end
 end
 
@@ -269,11 +300,16 @@ end
 
 function ANIM_FINISHERS.push(a)
   finish_move(a)
-  GS.box_map[pos_key(a.box.col, a.box.row)] = nil
+  local old = pos_key(a.box.col, a.box.row)
+  GS.box_map[old] = nil
   a.box.col = a.box_tc
   a.box.row = a.box_tr
-  GS.box_map[pos_key(a.box_tc, a.box_tr)] = a.box
+  local new = pos_key(a.box_tc, a.box_tr)
+  GS.box_map[new] = a.box
   check_goal()
+  if not turtle.anim then
+    check_box_goals(old, new)
+  end
 end
 
 ANIM_FINISHERS.fail = reset_level
@@ -289,9 +325,10 @@ end
 
 function advance_anim(dt)
   turtle.anim.time = turtle.anim.time + dt
-  if turtle.anim.kind == "win" then
-    local p = anim_progress()
-    turtle.anim.goal.radius = 1 - p
+  if turtle.anim.kind == "win"
+       and turtle.anim.goal
+  then
+    turtle.anim.goal.radius = 1 - anim_progress()
   end
   if turtle.anim.duration <= turtle.anim.time then
     finish_anim()

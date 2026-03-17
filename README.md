@@ -44,6 +44,12 @@ A box can only be pushed if the square behind it is
 empty. If it cannot move, the turtle bumps against it
 like a wall.
 
+## Box Goals
+
+Some levels have cyan squares on the floor. Push
+every yellow box onto a cyan square to win! You hear
+a victory sound when all boxes are in place.
+
 ## Repeating Commands
 
 Put a number before a command to repeat it:
