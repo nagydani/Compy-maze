@@ -58,7 +58,9 @@ GS = {
   grid = nil,
   goal_map = { },
   box_map = { },
-  box_goal_map = { }
+  box_goal_map = { },
+  box_goal_count = 0,
+  filled_count = 0
 }
 
 -- Parsing: read the maze strings to find the turtle
@@ -85,6 +87,7 @@ CELL_PARSERS["G"] = function(c, r)
   GS.box_goal_map[pos_key(c, r)] = {
     col = c, row = r
   }
+  GS.box_goal_count = GS.box_goal_count + 1
 end
 
 function parse_cell(ch, c, r)
@@ -103,6 +106,8 @@ function parse_maze()
   GS.goal_map = { }
   GS.box_map = { }
   GS.box_goal_map = { }
+  GS.box_goal_count = 0
+  GS.filled_count = 0
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -141,24 +146,30 @@ function can_push(col, row, dir)
        and not box_at(tc, tr)
 end
 
+function win_level(goal)
+  start_anim("win", ANIM.win_time)
+  turtle.anim.goal = goal
+end
+
 function check_goal()
   local g = GS.goal_map[pos_key(turtle.col, turtle.row)]
   if g then
-    start_anim("win", ANIM.win_time)
-    turtle.anim.goal = g
+    win_level(g)
     sfx.win()
   end
 end
 
-function check_box_goals()
-  local filled = next(GS.box_goal_map) ~= nil
-  for key, _ in pairs(GS.box_goal_map) do
-    if not GS.box_map[key] then
-      filled = false
-    end
+function check_box_goals(old_key, new_key)
+  if GS.box_goal_map[old_key] then
+    GS.filled_count = GS.filled_count - 1
   end
-  if filled then
-    start_anim("win", ANIM.win_time)
+  if GS.box_goal_map[new_key] then
+    GS.filled_count = GS.filled_count + 1
+  end
+  if 0 < GS.box_goal_count
+       and GS.filled_count == GS.box_goal_count
+  then
+    win_level(nil)
     sfx.wow()
   end
 end
@@ -288,13 +299,15 @@ end
 
 function ANIM_FINISHERS.push(a)
   finish_move(a)
-  GS.box_map[pos_key(a.box.col, a.box.row)] = nil
+  local old = pos_key(a.box.col, a.box.row)
+  GS.box_map[old] = nil
   a.box.col = a.box_tc
   a.box.row = a.box_tr
-  GS.box_map[pos_key(a.box_tc, a.box_tr)] = a.box
+  local new = pos_key(a.box_tc, a.box_tr)
+  GS.box_map[new] = a.box
   check_goal()
   if not turtle.anim then
-    check_box_goals()
+    check_box_goals(old, new)
   end
 end
 

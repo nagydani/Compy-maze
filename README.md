@@ -5,7 +5,9 @@ through a maze!
 
 ## Goal
 
-Move the turtle to the red circle to win!
+Push every yellow box onto a cyan square to win!
+If there is a red circle, you can also win by
+reaching it.
 
 ## Controls
 
