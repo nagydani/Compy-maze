@@ -230,7 +230,7 @@ function draw_legend()
   local fw = font:getWidth(LEGEND)
   local _, n = LEGEND:gsub("\n", "")
   local th = fh * (n + 1)
-  gfx.setColor(Color[Color.yellow])
+  gfx.setColor(Color[Color.black])
   gfx.print(LEGEND, (w - fw) - fh, (h - th) - fh)
 end
 
