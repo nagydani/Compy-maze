@@ -34,26 +34,22 @@ function record_key(key)
   if MAX_MACRO_LEN <= #(macro_state.body) then
     return 
   end
-  table.insert(macro_state.body, key:upper())
-  sfx.toggle()
+  local upper = key:upper()
+  if PRIMITIVES[upper] or macros[upper] then
+    table.insert(macro_state.body, upper)
+    sfx.toggle()
+  end
 end
 
 -- Finish recording: expand and save
-
-function expand_body(body)
-  local result = ""
-  for _, k in ipairs(body) do
-    result = result .. (macros[k] or k)
-  end
-  return result
-end
 
 function finish_recording()
   if not macro_state.recording then
     return 
   end
   macro_state.recording = false
-  local result = expand_body(macro_state.body)
+  local text = table.concat(macro_state.body)
+  local result = expand_macros(text)
   macros[macro_state.name] = 0 < #result and result or nil
 end
 
@@ -61,11 +57,15 @@ end
 
 function execute_key(key)
   local upper = key:upper()
-  local cmds = macros[upper] or upper
-  for i = 1, #cmds do
-    if process_cmd(cmds:sub(i, i)) then
-      sfx.ping()
+  local cmds = macros[upper]
+  if cmds then
+    for i = 1, #cmds do
+      if process_cmd(cmds:sub(i, i)) then
+        sfx.ping()
+      end
     end
+  elseif process_cmd(upper) then
+    sfx.ping()
   end
 end
 
