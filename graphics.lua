@@ -160,6 +160,7 @@ end
 -- Turtle position for the current frame
 
 ANIM_DRAW_POS = { }
+
 ANIM_DRAW_POS.move = anim_move_pos
 
 function ANIM_DRAW_POS.bump()
@@ -215,7 +216,8 @@ end
 function current_angle()
   local a = turtle.anim
   if a and a.kind == "turn" then
-    return lerp_angle(a.from_dir, a.target_dir, anim_progress())
+    local p = anim_progress()
+    return lerp_angle(a.from_dir, a.target_dir, p)
   end
   return DIR_ANGLES[turtle.dir]
 end
@@ -230,10 +232,54 @@ function draw_legend()
   local _, n = LEGEND:gsub("\n", "")
   local th = fh * (n + 1)
   gfx.setColor(Color[Color.black])
-  gfx.print(LEGEND, (w - fw) - fh, ((h - th) - fh) - fh)
+  gfx.print(LEGEND, (w - fw) - fh, (h - th) - fh)
 end
 
--- Draw everything on screen
+-- Dim overlay for macro recording
+
+function draw_dim()
+  local w, h = gfx.getDimensions()
+  gfx.setColor(0, 0, 0, 0.5)
+  gfx.rectangle("fill", 0, 0, w, h)
+end
+
+function draw_macro_name(x, y)
+  local name = macro_state.name:lower()
+  key_bg[name] = Color[Color.blue]
+  draw_key(x, y, name)
+end
+
+function draw_macro_body(x, y)
+  key_bg = { }
+  local w = gfx.getDimensions()
+  local start_x = x
+  for _, k in ipairs(macro_state.body) do
+    local lk = k:lower()
+    if w < x + width[lk] then
+      x = start_x
+      y = y + height[lk] + SCALE
+    end
+    draw_key(x, y, lk)
+    x = x + width[lk] + SCALE
+  end
+end
+
+function draw_macro_ui()
+  if macro_state.shift_held then
+    draw_dim()
+  end
+  if not macro_state.recording then
+    return 
+  end
+  local _, h = gfx.getDimensions()
+  local name = macro_state.name:lower()
+  local m = STD_H * SCALE
+  local y = (h - height[name]) / 2
+  draw_macro_name(m, y)
+  draw_macro_body(m, y + height[name] + SCALE)
+end
+
+-- Box drawing
 
 function box_draw_pos(b)
   local a = turtle.anim
@@ -265,6 +311,8 @@ function draw_boxes()
   end
 end
 
+-- Draw everything on screen
+
 function draw_scene()
   draw_walls()
   draw_cells()
@@ -276,4 +324,5 @@ function draw_scene()
   local angle = current_angle()
   draw_turtle_at(x, y, angle, GRID.scale)
   draw_legend()
+  draw_macro_ui()
 end

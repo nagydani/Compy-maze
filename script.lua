@@ -1,20 +1,5 @@
 -- script.lua
 
--- Macro definitions
-
-macros = { }
-
-PRIMITIVES = {
-  N = true,
-  E = true,
-  S = true,
-  W = true,
-  F = true,
-  B = true,
-  L = true,
-  R = true
-}
-
 -- Expand counted loops: 3R -> RRR
 
 function expand_loops(text)

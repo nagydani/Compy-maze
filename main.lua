@@ -2,9 +2,12 @@
 -- Maze game: guide a turtle to the destination!
 
 require("constants")
+require("controls")
 require("maze")
 require("turtle")
 require("graphics")
+require("keyboard_graphics")
+require("macro")
 require("script")
 
 sfx = compy.audio
@@ -52,6 +55,8 @@ end
 
 -- Game State
 
+macros = { }
+
 GS = {
   init = false,
   grid = nil,
@@ -59,8 +64,7 @@ GS = {
   box_map = { },
   box_goal_map = { },
   box_goal_count = 0,
-  filled_count = 0,
-  input = user_input()
+  filled_count = 0
 }
 
 -- Parsing: read the maze strings to find the turtle
@@ -77,16 +81,16 @@ CELL_PARSERS["*"] = function(c, r)
   }
 end
 
-function CELL_PARSERS.B(c, r)
+CELL_PARSERS["B"] = function(c, r)
   GS.box_map[pos_key(c, r)] = {
-    col = c,
-    row = r
+    col = c, row = r
   }
 end
 
-CELL_PARSERS["G"] = function(c, r)
+function CELL_PARSERS.G(c, r)
   GS.box_goal_map[pos_key(c, r)] = {
-    col = c, row = r
+    col = c,
+    row = r
   }
   GS.box_goal_count = GS.box_goal_count + 1
 end
@@ -154,7 +158,8 @@ function win_level(goal, sound)
 end
 
 function check_goal()
-  local g = GS.goal_map[pos_key(turtle.col, turtle.row)]
+  local k = pos_key(turtle.col, turtle.row)
+  local g = GS.goal_map[k]
   if g then
     win_level(g, sfx.win)
   end
@@ -184,7 +189,7 @@ end
 function ensure_init()
   if not GS.init then
     reset_level()
-    input_text("Commands:", string.lines(""))
+    maze.controls()
     GS.init = true
   end
 end
@@ -222,18 +227,22 @@ function start_forward(cmd, tc, tr)
   turtle.anim.move_cmd = cmd
 end
 
+function push_duration()
+  return GRID.push_path * ANIM.move_time / GRID.cell
+end
+
 function start_push(cmd, box)
   local d = DIR_DELTA[push_dir(cmd)]
-  start_anim(
-    "push",
-    GRID.push_path * ANIM.move_time / GRID.cell
-  )
+  start_anim("push", push_duration())
   sfx.jump()
-  local anim, col, row = turtle.anim, box.col, box.row
+  local anim = turtle.anim
+  local col, row = box.col, box.row
   anim.move_cmd = cmd
-  anim.target_col, anim.target_row = col, row
+  anim.target_col = col
+  anim.target_row = row
   anim.box = box
-  anim.box_tc, anim.box_tr = col + d.x, row + d.y
+  anim.box_tc = col + d.x
+  anim.box_tr = row + d.y
 end
 
 function try_push(cmd, box, tc, tr)
@@ -335,7 +344,7 @@ function advance_anim(dt)
   end
 end
 
--- Main Loop
+-- Editor input processing
 
 function process_user_input()
   if GS.input:is_empty() then
@@ -350,9 +359,13 @@ function process_user_input()
   input_text("Commands:", string.lines(text))
 end
 
+-- Main Loop
+
 function love.update(dt)
   ensure_init()
-  process_user_input()
+  if ctrl_update then
+    ctrl_update()
+  end
   if turtle.anim then
     advance_anim(dt)
   else
@@ -369,7 +382,13 @@ end
 function love.keypressed(k)
   if k == "escape" then
     love.event.quit()
+  elseif ctrl_pressed then
+    ctrl_pressed(k)
   end
+end
+
+function love.keyreleased(k)
+  release_shift(k)
 end
 
 function love.resize()

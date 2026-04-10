@@ -10,7 +10,7 @@ ANIM = {
   win_time = 0.5
 }
 
--- Turtle drawing sizes 
+-- Turtle drawing sizes
 
 TURTLE = {
   head_r = 8,
@@ -24,3 +24,20 @@ TURTLE = {
 }
 
 LEGEND = readfile("legend.txt")
+
+-- Keyboard macro limits
+
+MAX_MACRO_LEN = 7
+
+-- Primitive commands 
+
+PRIMITIVES = {
+  N = true,
+  E = true,
+  S = true,
+  W = true,
+  F = true,
+  B = true,
+  L = true,
+  R = true
+}
