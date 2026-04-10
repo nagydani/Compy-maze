@@ -138,6 +138,16 @@ Some levels have cyan squares on the floor. Push
 every yellow box onto a cyan square to win! You hear
 a victory sound when all boxes are in place.
 
+## Level Progression
+
+The game has multiple levels. Complete a level to
+advance to the next one. The last level completed
+quits the game.
+
+Defined shortcuts carry over between levels.
+Commands entered before a level ends will continue
+in the next level.
+
 ## The Screen
 
 The maze is shown in the center. Walls are blue,

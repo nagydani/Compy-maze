@@ -41,15 +41,9 @@ end
 -- Finish recording: expand and save
 
 function expand_body(body)
-  local result = { }
+  local result = ""
   for _, k in ipairs(body) do
-    if macros[k] then
-      for _, m in ipairs(macros[k]) do
-        table.insert(result, m)
-      end
-    else
-      table.insert(result, k)
-    end
+    result = result .. (macros[k] or k)
   end
   return result
 end
@@ -67,9 +61,9 @@ end
 
 function execute_key(key)
   local upper = key:upper()
-  local expanded = macros[upper] or { upper }
-  for _, ch in ipairs(expanded) do
-    if process_cmd(ch) then
+  local cmds = macros[upper] or upper
+  for i = 1, #cmds do
+    if process_cmd(cmds:sub(i, i)) then
       sfx.ping()
     end
   end

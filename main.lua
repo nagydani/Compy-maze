@@ -1,9 +1,10 @@
 -- main.lua
+
 -- Maze game: guide a turtle to the destination!
 
 require("constants")
 require("controls")
-require("maze")
+require("levels")
 require("turtle")
 require("graphics")
 require("keyboard_graphics")
@@ -56,6 +57,8 @@ end
 -- Game State
 
 macros = { }
+level_index = 1
+maze = levels[level_index]
 
 GS = {
   init = false,
@@ -186,10 +189,14 @@ function reset_level()
   parse_maze()
 end
 
+function start_level()
+  reset_level()
+  maze.controls()
+end
+
 function ensure_init()
   if not GS.init then
-    reset_level()
-    maze.controls()
+    start_level()
     GS.init = true
   end
 end
@@ -321,8 +328,22 @@ function ANIM_FINISHERS.push(a)
   end
 end
 
+-- Level progression
+
+function next_level()
+  level_index = level_index + 1
+  if #levels < level_index then
+    love.event.quit()
+  else
+    maze = levels[level_index]
+    local saved = turtle.queue
+    start_level()
+    turtle.queue = saved
+  end
+end
+
 ANIM_FINISHERS.fail = reset_level
-ANIM_FINISHERS.win = love.event.quit
+ANIM_FINISHERS.win = next_level
 
 function finish_anim()
   local a = turtle.anim
