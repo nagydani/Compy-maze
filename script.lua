@@ -3,7 +3,7 @@
 -- Expand counted loops: 3R -> RRR
 
 function expand_loops(text)
-  return text:gsub("(%d+)(%a)", function(n, ch)
+  return text:gsub("(%d+)([%a%.])", function(n, ch)
     return ch:rep(n)
   end)
 end
@@ -38,11 +38,11 @@ end
 function is_valid_line(line)
   if line == "" then
     return true
-  elseif line:match("^%a=[%a%d]+$") then
+  elseif line:match("^%a=[%a%d%.]+$") then
     local name = line:sub(1, 1):upper()
     return not PRIMITIVES[name]
   else
-    return line:match("^[%a%d]+$") ~= nil
+    return line:match("^[%a%d%.]+$") ~= nil
   end
 end
 
@@ -62,10 +62,7 @@ end
 function enqueue_commands(line)
   local cmds = expand(line)
   for i = 1, #cmds do
-    local ch = cmds:sub(i, i)
-    if process_cmd(ch) then
-      sfx.ping()
-    end
+    ping_cmd(cmds:sub(i, i))
   end
 end
 

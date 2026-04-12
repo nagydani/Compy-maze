@@ -276,7 +276,9 @@ end
 
 function execute_next()
   local cmd = dequeue()
-  if cmd == "L" or cmd == "R" then
+  if cmd == "." then
+    next_level()
+  elseif cmd == "L" or cmd == "R" then
     start_turn(cmd)
   elseif cmd == "F" or cmd == "B" then
     start_move(cmd)

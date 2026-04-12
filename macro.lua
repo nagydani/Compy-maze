@@ -60,12 +60,10 @@ function execute_key(key)
   local cmds = macros[upper]
   if cmds then
     for i = 1, #cmds do
-      if process_cmd(cmds:sub(i, i)) then
-        sfx.ping()
-      end
+      ping_cmd(cmds:sub(i, i))
     end
-  elseif process_cmd(upper) then
-    sfx.ping()
+  else
+    ping_cmd(upper)
   end
 end
 

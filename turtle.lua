@@ -95,11 +95,18 @@ function process_cmd(k)
        or cmd == "R"
        or cmd == "F"
        or cmd == "B"
+       or cmd == "."
   then
     table.insert(turtle.queue, cmd)
     return true
   end
   return false
+end
+
+function ping_cmd(ch)
+  if process_cmd(ch) and ch ~= "." then
+    sfx.ping()
+  end
 end
 
 -- Dequeue the next relative command

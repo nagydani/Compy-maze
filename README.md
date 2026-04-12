@@ -148,6 +148,22 @@ Defined shortcuts carry over between levels.
 Commands entered before a level ends will continue
 in the next level.
 
+## Skip Level
+
+The command "." immediately advances to the next
+level without any animation or sound. It can be
+repeated to skip multiple levels:
+
+    3.
+
+skips three levels. It can also be used in shortcuts
+and combined with other commands:
+
+    FF.FF
+
+moves forward twice, skips to the next level, then
+moves forward twice in the new level.
+
 ## The Screen
 
 The maze is shown in the center. Walls are blue,

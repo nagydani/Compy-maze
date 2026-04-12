@@ -39,5 +39,6 @@ PRIMITIVES = {
   F = true,
   B = true,
   L = true,
-  R = true
+  R = true,
+  ["."] = true
 }
