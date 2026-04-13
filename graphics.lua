@@ -44,6 +44,7 @@ function draw_active_trace()
   then
     local x1, y1 = cell_center(a.from_col, a.from_row)
     local x2, y2 = current_pos()
+    gfx.circle("fill", x1, y1, GRID.trace_r)
     gfx.line(x1, y1, x2, y2)
   end
 end

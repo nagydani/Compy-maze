@@ -90,13 +90,7 @@ end
 
 function process_cmd(k)
   local cmd = string.upper(k)
-  if DIR_DELTA[cmd]
-       or cmd == "L"
-       or cmd == "R"
-       or cmd == "F"
-       or cmd == "B"
-       or cmd == "."
-  then
+  if string.find("NSEWFBLR.", cmd) then
     table.insert(turtle.queue, cmd)
     return true
   end
