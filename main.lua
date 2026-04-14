@@ -371,28 +371,29 @@ end
 
 function process_user_input()
   if GS.input:is_empty() then
-    return 
+    if not turtle.anim and #turtle.queue == 0 then
+      input_text("Commands:", string.lines(""))
+    end
+    return
   end
   local text = string.unlines(GS.input())
-  if process_input(string.lines(text)) then
-    text = ""
-  else
+  if not process_input(string.lines(text)) then
     sfx.wrong()
+    input_text("Commands:", string.lines(text))
   end
-  input_text("Commands:", string.lines(text))
 end
 
 -- Main Loop
 
 function love.update(dt)
   ensure_init()
-  if ctrl_update then
-    ctrl_update()
-  end
   if turtle.anim then
     advance_anim(dt)
   else
     execute_next()
+  end
+  if ctrl_update then
+    ctrl_update()
   end
 end
 
