@@ -60,7 +60,7 @@ macros = { }
 level_index = 1
 maze = levels[level_index]
 cur_controls = editor
-cur_progression = "portal"
+cur_progression = portal
 cur_legend = nil
 cur_grid = false
 
@@ -363,30 +363,16 @@ CMD_HANDLERS = {
   B = start_move
 }
 
+function on_win()
+  cur_progression()
+end
+
 function execute_next()
   local cmd = dequeue()
   local fn = CMD_HANDLERS[cmd]
   if fn then
     fn(cmd)
   end
-end
-
-WIN_HANDLERS = { }
-
-WIN_HANDLERS.portal = next_level
-
-function WIN_HANDLERS.celebrate()
-  turtle.queue = { }
-  ctrl_update = nil
-  GS.celebrating = true
-end
-
-function WIN_HANDLERS.continue()
-  GS.won = true
-end
-
-function on_win()
-  WIN_HANDLERS[cur_progression]()
 end
 
 function on_fail()

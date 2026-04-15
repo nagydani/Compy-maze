@@ -7,7 +7,7 @@ corridor = {
   "#N  *#",
   "######",
   controls = editor,
-  progression = "celebrate",
+  progression = celebrate,
   legend = LEGEND_FULL,
   grid = true
 }
@@ -22,7 +22,7 @@ sokoban = {
   "   #G#  ",
   "   ###  ",
   controls = keys,
-  progression = "portal",
+  progression = portal,
   legend = LEGEND_FULL
 }
 

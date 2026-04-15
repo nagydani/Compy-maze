@@ -20,3 +20,19 @@ function editor()
   GS.input = user_input()
   input_text("Commands:", string.lines(""))
 end
+
+-- Progression modes
+
+function portal()
+  next_level()
+end
+
+function celebrate()
+  turtle.queue = { }
+  ctrl_update = nil
+  GS.celebrating = true
+end
+
+function continue()
+  GS.won = true
+end
