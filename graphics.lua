@@ -24,6 +24,29 @@ function draw_cells()
   end
 end
 
+-- Grid crosses in center of passable squares
+
+function draw_cross(cx, cy, s)
+  gfx.line(cx - s, cy, cx + s, cy)
+  gfx.line(cx, cy - s, cx, cy + s)
+end
+
+function draw_grid()
+  if not cur_grid then
+    return
+  end
+  gfx.setColor(Color[Color.white + Color.bright])
+  gfx.setLineWidth(1)
+  for r, row in ipairs(GS.grid) do
+    for c = 1, #row do
+      if row:sub(c, c) ~= "#" then
+        local cx, cy = cell_center(c, r)
+        draw_cross(cx, cy, GRID.cell / 4)
+      end
+    end
+  end
+end
+
 -- Destinations are red circles
 
 function draw_goals()
@@ -226,14 +249,17 @@ end
 -- Show controls legend in the bottom right corner
 
 function draw_legend()
+  if not cur_legend then
+    return 
+  end
   local w, h = gfx.getDimensions()
   local font = gfx.getFont()
   local fh = font:getHeight()
-  local fw = font:getWidth(LEGEND)
-  local _, n = LEGEND:gsub("\n", "")
+  local fw = font:getWidth(cur_legend)
+  local _, n = cur_legend:gsub("\n", "")
   local th = fh * (n + 1)
   gfx.setColor(Color[Color.black])
-  gfx.print(LEGEND, (w - fw) - fh, (h - th) - fh)
+  gfx.print(cur_legend, (w - fw) - fh, (h - th) - fh)
 end
 
 -- Dim overlay for macro recording
@@ -312,11 +338,26 @@ function draw_boxes()
   end
 end
 
+-- Celebrate message
+
+function draw_celebrate()
+  if not GS.celebrating then
+    return 
+  end
+  local w, h = gfx.getDimensions()
+  local font = gfx.getFont()
+  local fw = font:getWidth(CELEBRATE_TEXT)
+  local fh = font:getHeight()
+  gfx.setColor(Color[Color.white + Color.bright])
+  gfx.print(CELEBRATE_TEXT, (w - fw) / 2, (h - fh) / 2)
+end
+
 -- Draw everything on screen
 
 function draw_scene()
   draw_walls()
   draw_cells()
+  draw_grid()
   draw_box_goals()
   draw_goals()
   draw_traces()
@@ -326,4 +367,5 @@ function draw_scene()
   draw_turtle_at(x, y, angle, GRID.scale)
   draw_legend()
   draw_macro_ui()
+  draw_celebrate()
 end

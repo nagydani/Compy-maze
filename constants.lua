@@ -23,7 +23,9 @@ TURTLE = {
   fit_factor = 5
 }
 
-LEGEND = readfile("legend.txt")
+-- Legends
+
+LEGEND_FULL = readfile("legend.txt")
 
 -- Keyboard macro limits
 
@@ -42,3 +44,7 @@ PRIMITIVES = {
   R = true,
   ["."] = true
 }
+
+-- Celebrate message
+
+CELEBRATE_TEXT = "Congratulations! Press Enter to proceed."

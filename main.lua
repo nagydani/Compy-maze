@@ -59,6 +59,10 @@ end
 macros = { }
 level_index = 1
 maze = levels[level_index]
+cur_controls = editor
+cur_progression = "portal"
+cur_legend = nil
+cur_grid = false
 
 GS = {
   init = false,
@@ -67,7 +71,9 @@ GS = {
   box_map = { },
   box_goal_map = { },
   box_goal_count = 0,
-  filled_count = 0
+  filled_count = 0,
+  won = false,
+  celebrating = false
 }
 
 -- Parsing: read the maze strings to find the turtle
@@ -116,6 +122,8 @@ function parse_maze()
   GS.box_goal_map = { }
   GS.box_goal_count = 0
   GS.filled_count = 0
+  GS.won = false
+  GS.celebrating = false
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -189,9 +197,23 @@ function reset_level()
   parse_maze()
 end
 
+function apply_attrs()
+  if maze.controls ~= nil then
+    cur_controls = maze.controls
+  end
+  if maze.progression ~= nil then
+    cur_progression = maze.progression
+  end
+  cur_legend = maze.legend
+  if maze.grid ~= nil then
+    cur_grid = maze.grid
+  end
+end
+
 function start_level()
+  apply_attrs()
   reset_level()
-  maze.controls()
+  cur_controls()
 end
 
 function ensure_init()
@@ -274,17 +296,6 @@ function start_move(cmd)
   end
 end
 
-function execute_next()
-  local cmd = dequeue()
-  if cmd == "." then
-    next_level()
-  elseif cmd == "L" or cmd == "R" then
-    start_turn(cmd)
-  elseif cmd == "F" or cmd == "B" then
-    start_move(cmd)
-  end
-end
-
 function finish_move(a)
   turtle.col = a.target_col
   turtle.row = a.target_row
@@ -344,8 +355,51 @@ function next_level()
   end
 end
 
-ANIM_FINISHERS.fail = reset_level
-ANIM_FINISHERS.win = next_level
+CMD_HANDLERS = {
+  ["."] = next_level,
+  L = start_turn,
+  R = start_turn,
+  F = start_move,
+  B = start_move
+}
+
+function execute_next()
+  local cmd = dequeue()
+  local fn = CMD_HANDLERS[cmd]
+  if fn then
+    fn(cmd)
+  end
+end
+
+WIN_HANDLERS = { }
+
+WIN_HANDLERS.portal = next_level
+
+function WIN_HANDLERS.celebrate()
+  turtle.queue = { }
+  ctrl_update = nil
+  GS.celebrating = true
+end
+
+function WIN_HANDLERS.continue()
+  GS.won = true
+end
+
+function on_win()
+  WIN_HANDLERS[cur_progression]()
+end
+
+function on_fail()
+  if GS.won then
+    turtle.queue = { }
+    next_level()
+  else
+    reset_level()
+  end
+end
+
+ANIM_FINISHERS.fail = on_fail
+ANIM_FINISHERS.win = on_win
 
 function finish_anim()
   local a = turtle.anim
@@ -389,7 +443,7 @@ function love.update(dt)
   ensure_init()
   if turtle.anim then
     advance_anim(dt)
-  else
+  elseif not GS.celebrating then
     execute_next()
   end
   if ctrl_update then
@@ -403,11 +457,27 @@ function love.draw()
   end
 end
 
+SYSTEM_KEYS = { }
+
+function SYSTEM_KEYS.escape()
+  love.event.quit()
+end
+
+function SYSTEM_KEYS.menu()
+  cur_grid = not cur_grid
+  sfx.sword()
+end
+
 function love.keypressed(k)
-  if k == "escape" then
-    love.event.quit()
-  elseif ctrl_pressed then
-    ctrl_pressed(k)
+  if GS.celebrating and k == "return" then
+    next_level()
+  else
+    local fn = SYSTEM_KEYS[k]
+    if fn then
+      fn()
+    elseif ctrl_pressed then
+      ctrl_pressed(k)
+    end
   end
 end
 

@@ -140,13 +140,29 @@ a victory sound when all boxes are in place.
 
 ## Level Progression
 
-The game has multiple levels. Complete a level to
-advance to the next one. The last level completed
-quits the game.
+The game has multiple levels. Each level can have
+one of three progression modes:
 
-Defined shortcuts carry over between levels.
-Commands entered before a level ends will continue
-in the next level.
+### Portal
+
+The default mode. Upon winning, the game immediately
+advances to the next level. Leftover commands carry
+over and execute in the new level. Defined shortcuts
+also carry over.
+
+### Celebrate
+
+Upon winning, all remaining commands are discarded.
+A congratulations message appears on screen. Press
+Enter to proceed to the next level.
+
+### Continue
+
+Upon winning, the player stays on the same level
+and can continue entering commands. Crashing into
+a wall after winning advances to the next level
+and discards remaining commands. The "." command
+works as usual.
 
 ## Skip Level
 
@@ -163,6 +179,12 @@ and combined with other commands:
 
 moves forward twice, skips to the next level, then
 moves forward twice in the new level.
+
+## Grid
+
+Some levels display a grid of small white crosses
+in the center of each passable square. The grid can
+be toggled on or off by pressing the Menu key.
 
 ## The Screen
 

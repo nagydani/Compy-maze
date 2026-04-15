@@ -1,12 +1,15 @@
 -- levels.lua
 
--- Each level is an array of strings with a controls field.
+-- Each level is an array of strings with attributes.
 
 corridor = {
   "######",
   "#N  *#",
   "######",
-  controls = keys
+  controls = editor,
+  progression = "celebrate",
+  legend = LEGEND_FULL,
+  grid = true
 }
 
 sokoban = {
@@ -18,10 +21,12 @@ sokoban = {
   "####B#  ",
   "   #G#  ",
   "   ###  ",
-  controls = editor
+  controls = keys,
+  progression = "portal",
+  legend = LEGEND_FULL
 }
 
-levels = { 
-  corridor, 
-  sokoban 
+levels = {
+  corridor,
+  sokoban
 }
