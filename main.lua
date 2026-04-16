@@ -454,6 +454,8 @@ function SYSTEM_KEYS.menu()
   sfx.sword()
 end
 
+love.mousepressed = SYSTEM_KEYS.menu
+
 function love.keypressed(k)
   if GS.celebrating and k == "return" then
     next_level()
