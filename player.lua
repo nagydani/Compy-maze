@@ -1,0 +1,133 @@
+-- player.lua
+
+-- Compass directions
+
+-- How each direction moves on the grid
+
+DIR_DELTA = { }
+
+DIR_DELTA.N = {
+  x = 0,
+  y = -1
+}
+DIR_DELTA.S = {
+  x = 0,
+  y = 1
+}
+DIR_DELTA.W = {
+  x = -1,
+  y = 0
+}
+DIR_DELTA.E = {
+  x = 1,
+  y = 0
+}
+
+-- N <-> S, E <-> W
+
+OPPOSITE_DIR = {
+  N = "S",
+  S = "N",
+  E = "W",
+  W = "E"
+}
+
+-- N -> E -> S -> W (clockwise)
+
+TURN_RIGHT = {
+  N = "E",
+  E = "S",
+  S = "W",
+  W = "N"
+}
+
+-- N -> W -> S -> E (counter-clockwise)
+
+TURN_LEFT = {
+  N = "W",
+  W = "S",
+  S = "E",
+  E = "N"
+}
+
+-- Turn an absolute command into relative ones.
+
+function compile_absolute(target, facing)
+  if target == facing then
+    return "F"
+  elseif target == OPPOSITE_DIR[facing] then
+    return "B"
+  elseif target == TURN_RIGHT[facing] then
+    return "R"
+  else
+    return "L"
+  end
+end
+
+-- Player state
+
+player = {
+  col = 1,
+  row = 1,
+  dir = "N",
+  queue = { },
+  anim = nil,
+  traces = { }
+}
+
+function player_reset(col, row, dir)
+  player.col = col
+  player.row = row
+  player.dir = dir
+  player.queue = { }
+  player.anim = nil
+  player.traces = { }
+end
+
+-- Command queue
+
+function process_cmd(k)
+  local cmd = string.upper(k)
+  if string.find("NSEWFBLR.", cmd) then
+    table.insert(player.queue, cmd)
+    return true
+  end
+  return false
+end
+
+function ping_cmd(ch)
+  if process_cmd(ch) and ch ~= "." then
+    sfx.ping()
+  end
+end
+
+-- Dequeue the next relative command
+
+function dequeue()
+  local cmd = table.remove(player.queue, 1)
+  if not DIR_DELTA[cmd] then
+    return cmd
+  end
+  local rel = compile_absolute(cmd, player.dir)
+  if rel == "R" or rel == "L" then
+    table.insert(player.queue, 1, "F")
+  end
+  return rel
+end
+
+-- Animation state
+
+function start_anim(kind, duration)
+  player.anim = {
+    kind = kind,
+    time = 0,
+    duration = duration,
+    from_col = player.col,
+    from_row = player.row,
+    from_dir = player.dir
+  }
+end
+
+function anim_progress()
+  return player.anim.time / player.anim.duration
+end

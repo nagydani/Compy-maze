@@ -4,9 +4,13 @@
 
 gfx = love.graphics
 
--- Maze drawing
+require("decorations")
 
 function draw_walls()
+  if cur_background then
+    cur_background()
+    return
+  end
   local w, h = gfx.getDimensions()
   gfx.setColor(Color[Color.blue + Color.bright])
   gfx.rectangle("fill", 0, 0, w, h)
@@ -58,10 +62,10 @@ function draw_goals()
   end
 end
 
--- Cyan trace left by the turtle when moving forward.
+-- Cyan trace left by the player when moving forward.
 
 function draw_active_trace()
-  local a = turtle.anim
+  local a = player.anim
   if a and a.move_cmd == "F"
        and (a.kind == "move" or a.kind == "push")
   then
@@ -75,7 +79,7 @@ end
 function draw_traces()
   gfx.setColor(Color[Color.cyan])
   gfx.setLineWidth(GRID.trace_r * 2)
-  for _, t in ipairs(turtle.traces) do
+  for _, t in ipairs(player.traces) do
     local x1, y1 = cell_center(t.c1, t.r1)
     local x2, y2 = cell_center(t.c2, t.r2)
     gfx.line(x1, y1, x2, y2)
@@ -83,40 +87,6 @@ function draw_traces()
     gfx.circle("fill", x2, y2, GRID.trace_r)
   end
   draw_active_trace()
-end
-
--- Turtle drawing
-
-function draw_leg(scale, sx, sy)
-  local xr = TURTLE.body_xr * scale
-  local yr = TURTLE.body_yr * scale
-  local lxr = TURTLE.leg_xr * scale
-  local lyr = TURTLE.leg_yr * scale
-  gfx.push("all")
-  gfx.translate(sx * xr, sy * (yr / 2 + lxr))
-  gfx.rotate(sx * sy * TURTLE.leg_angle)
-  gfx.ellipse("fill", 0, 0, lxr, lyr)
-  gfx.pop()
-end
-
--- Four legs
-
-function draw_legs(scale)
-  draw_leg(scale, -1, -1)
-  draw_leg(scale, 1, -1)
-  draw_leg(scale, -1, 1)
-  draw_leg(scale, 1, 1)
-end
-
--- Body ellipse and round head
-
-function draw_body(scale)
-  local xr = TURTLE.body_xr * scale
-  local yr = TURTLE.body_yr * scale
-  local hr = TURTLE.head_r * scale
-  local neck = TURTLE.neck * scale
-  gfx.ellipse("fill", 0, 0, xr, yr)
-  gfx.circle("fill", 0, (-yr - hr) + neck, hr)
 end
 
 -- Angle for each compass direction
@@ -128,25 +98,22 @@ DIR_ANGLES = {
   W = -math.pi / 2
 }
 
--- Draw the turtle at screen position (x, y)
+-- Draw the player sprite at screen position (x, y)
 
-function draw_turtle_at(x, y, angle, scale)
-  local body_c = turtle.color or Color.green
-  local limb_c = body_c + Color.bright
+function draw_player_at(x, y, angle, scale)
   gfx.push("all")
   gfx.translate(x, y)
   gfx.rotate(angle)
-  gfx.setColor(Color[limb_c])
-  draw_legs(scale)
-  gfx.setColor(Color[body_c])
-  draw_body(scale)
+  gfx.scale(scale, scale)
+  gfx.translate(-PLAYER.sprite_w / 2, -PLAYER.sprite_h / 2)
+  player_sprite()
   gfx.pop()
 end
 
--- Turtle position during movement animation
+-- Player position during movement animation
 
 function anim_move_pos()
-  local a = turtle.anim
+  local a = player.anim
   local p = anim_progress()
   local x1, y1 = cell_center(a.from_col, a.from_row)
   local x2, y2 = cell_center(a.target_col, a.target_row)
@@ -156,13 +123,13 @@ end
 -- Position near the wall edge.
 
 function bump_pos(p)
-  local a = turtle.anim
-  local dir = turtle.dir
+  local a = player.anim
+  local dir = player.dir
   if a.move_cmd == "B" then
     dir = OPPOSITE_DIR[dir]
   end
   local d = DIR_DELTA[dir]
-  local cx, cy = cell_center(turtle.col, turtle.row)
+  local cx, cy = cell_center(player.col, player.row)
   return cx + d.x * GRID.bump_dist * p, cy + d.y * GRID.
       bump_dist * p
 end
@@ -181,7 +148,7 @@ function lerp_angle(from_dir, to_dir, t)
   return from + diff * t
 end
 
--- Turtle position for the current frame
+-- Player position for the current frame
 
 ANIM_DRAW_POS = { }
 
@@ -204,8 +171,8 @@ function push_offset(p)
   return peak - (dist - peak)
 end
 
-function push_turtle_pos()
-  local a = turtle.anim
+function push_player_pos()
+  local a = player.anim
   local dir = push_dir(a.move_cmd)
   local d = DIR_DELTA[dir]
   local cx, cy = cell_center(a.from_col, a.from_row)
@@ -224,26 +191,26 @@ function push_box_offset(p)
   return dist
 end
 
-ANIM_DRAW_POS.push = push_turtle_pos
+ANIM_DRAW_POS.push = push_player_pos
 
 function current_pos()
-  local a = turtle.anim
+  local a = player.anim
   local fn = a and ANIM_DRAW_POS[a.kind]
   if fn then
     return fn()
   end
-  return cell_center(turtle.col, turtle.row)
+  return cell_center(player.col, player.row)
 end
 
--- Turtle angle for the current frame
+-- Player angle for the current frame
 
 function current_angle()
-  local a = turtle.anim
+  local a = player.anim
   if a and a.kind == "turn" then
     local p = anim_progress()
     return lerp_angle(a.from_dir, a.target_dir, p)
   end
-  return DIR_ANGLES[turtle.dir]
+  return DIR_ANGLES[player.dir]
 end
 
 -- Show controls legend in the bottom right corner
@@ -309,7 +276,7 @@ end
 -- Box drawing
 
 function box_draw_pos(b)
-  local a = turtle.anim
+  local a = player.anim
   if not a or a.kind ~= "push"
        or a.box ~= b
   then
@@ -364,7 +331,7 @@ function draw_scene()
   draw_boxes()
   local x, y = current_pos()
   local angle = current_angle()
-  draw_turtle_at(x, y, angle, GRID.scale)
+  draw_player_at(x, y, angle, GRID.scale)
   draw_legend()
   draw_macro_ui()
   draw_celebrate()

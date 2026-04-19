@@ -10,17 +10,19 @@ ANIM = {
   win_time = 0.5
 }
 
--- Turtle drawing sizes
+-- Player sprite box; cell_fill < 1 leaves room
+-- for the bump animation to show movement.
 
-TURTLE = {
-  head_r = 8,
-  leg_xr = 5,
-  leg_yr = 10,
-  body_xr = 15,
-  body_yr = 20,
-  neck = 5,
-  leg_angle = math.pi / 4,
-  fit_factor = 5
+PLAYER = {
+  sprite_w = 100,
+  sprite_h = 120,
+  cell_fill = 0.56
+}
+
+-- Movement trail style
+
+TRACE = {
+  radius_frac = 0.08
 }
 
 -- Legends

@@ -116,8 +116,8 @@ The turtle turns and moves with a short animation.
 When moving forward, it leaves a bright trail behind.
 Moving backward leaves no trail.
 
-If the turtle hits a wall, it flashes red, you hear
-a sound, and the maze resets so you can try again.
+If the turtle hits a wall, you hear a sound and the
+maze resets so you can try again.
 
 When you reach the red circle, you hear a victory
 sound and the circle disappears.
@@ -188,8 +188,9 @@ be toggled on or off by pressing the Menu key.
 
 ## The Screen
 
-The maze is shown in the center. Walls are blue,
-open paths are white. The bottom right corner shows
-all available commands.
+The maze is shown in the center. Walls can show a
+decorative background picture, or a plain blue fill
+if the level does not set one. Open paths are white.
+The bottom right corner shows all available commands.
 
 Press Escape to quit.

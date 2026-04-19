@@ -28,7 +28,7 @@ function portal()
 end
 
 function celebrate()
-  turtle.queue = { }
+  player.queue = { }
   ctrl_update = nil
   GS.celebrating = true
 end

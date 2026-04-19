@@ -1,12 +1,12 @@
 -- main.lua
 
--- Maze game: guide a turtle to the destination!
+-- Maze game: guide a player to the destination!
 
 require("constants")
 require("controls")
-require("levels")
-require("turtle")
 require("graphics")
+require("levels")
+require("player")
 require("keyboard_graphics")
 require("macro")
 require("script")
@@ -34,11 +34,10 @@ function init_grid(rows, cols)
   GRID.cell = math.min(w / cols, h / rows)
   GRID.offset_x = (w - GRID.cell * cols) / 2
   GRID.offset_y = (h - GRID.cell * rows) / 2
-  local ff = TURTLE.fit_factor
-  GRID.scale = GRID.cell / (TURTLE.body_yr * ff)
-  local full = TURTLE.body_yr + TURTLE.head_r
-  GRID.bump_dist = GRID.cell / 2 - full * GRID.scale
-  GRID.trace_r = TURTLE.head_r * GRID.scale
+  local long_side = math.max(PLAYER.sprite_w, PLAYER.sprite_h)
+  GRID.scale = GRID.cell * PLAYER.cell_fill / long_side
+  GRID.bump_dist = (GRID.cell - long_side * GRID.scale) / 2
+  GRID.trace_r = GRID.cell * TRACE.radius_frac
   GRID.push_path = GRID.bump_dist + GRID.cell + GRID.bump_dist
 end
 
@@ -63,6 +62,7 @@ cur_controls = editor
 cur_progression = portal
 cur_legend = nil
 cur_grid = false
+cur_background = nil
 
 GS = {
   init = false,
@@ -76,7 +76,7 @@ GS = {
   celebrating = false
 }
 
--- Parsing: read the maze strings to find the turtle
+-- Parsing: read the maze strings to find the player
 
 CELL_PARSERS = { }
 
@@ -106,7 +106,7 @@ end
 
 function parse_cell(ch, c, r)
   if DIR_DELTA[ch] then
-    turtle_reset(c, r, ch)
+    player_reset(c, r, ch)
     return 
   end
   local fn = CELL_PARSERS[ch]
@@ -150,9 +150,9 @@ end
 
 function push_dir(cmd)
   if cmd == "B" then
-    return OPPOSITE_DIR[turtle.dir]
+    return OPPOSITE_DIR[player.dir]
   end
-  return turtle.dir
+  return player.dir
 end
 
 function can_push(col, row, dir)
@@ -164,12 +164,12 @@ end
 
 function win_level(goal, sound)
   start_anim("win", ANIM.win_time)
-  turtle.anim.goal = goal
+  player.anim.goal = goal
   sound()
 end
 
 function check_goal()
-  local k = pos_key(turtle.col, turtle.row)
+  local k = pos_key(player.col, player.row)
   local g = GS.goal_map[k]
   if g then
     win_level(g, sfx.win)
@@ -208,6 +208,7 @@ function apply_attrs()
   if maze.grid ~= nil then
     cur_grid = maze.grid
   end
+  cur_background = maze.background
 end
 
 function start_level()
@@ -228,32 +229,32 @@ end
 function start_turn(cmd)
   start_anim("turn", ANIM.turn_time)
   if cmd == "R" then
-    turtle.anim.target_dir = TURN_RIGHT[turtle.dir]
+    player.anim.target_dir = TURN_RIGHT[player.dir]
   else
-    turtle.anim.target_dir = TURN_LEFT[turtle.dir]
+    player.anim.target_dir = TURN_LEFT[player.dir]
   end
 end
 
 function move_cmd_target(cmd)
-  local dir = turtle.dir
+  local dir = player.dir
   if cmd == "B" then
     dir = OPPOSITE_DIR[dir]
   end
   local d = DIR_DELTA[dir]
-  return turtle.col + d.x, turtle.row + d.y
+  return player.col + d.x, player.row + d.y
 end
 
 function start_bump(cmd)
   local t = ANIM.move_time * ANIM.bump_frac
   start_anim("bump", t)
-  turtle.anim.move_cmd = cmd
+  player.anim.move_cmd = cmd
 end
 
 function start_forward(cmd, tc, tr)
   start_anim("move", ANIM.move_time)
-  turtle.anim.target_col = tc
-  turtle.anim.target_row = tr
-  turtle.anim.move_cmd = cmd
+  player.anim.target_col = tc
+  player.anim.target_row = tr
+  player.anim.move_cmd = cmd
 end
 
 function push_duration()
@@ -264,7 +265,7 @@ function start_push(cmd, box)
   local d = DIR_DELTA[push_dir(cmd)]
   start_anim("push", push_duration())
   sfx.jump()
-  local anim = turtle.anim
+  local anim = player.anim
   local col, row = box.col, box.row
   anim.move_cmd = cmd
   anim.target_col = col
@@ -297,10 +298,10 @@ function start_move(cmd)
 end
 
 function finish_move(a)
-  turtle.col = a.target_col
-  turtle.row = a.target_row
+  player.col = a.target_col
+  player.row = a.target_row
   if a.move_cmd == "F" then
-    table.insert(turtle.traces, {
+    table.insert(player.traces, {
       c1 = a.from_col,
       r1 = a.from_row,
       c2 = a.target_col,
@@ -312,7 +313,7 @@ end
 ANIM_FINISHERS = { }
 
 function ANIM_FINISHERS.turn(a)
-  turtle.dir = a.target_dir
+  player.dir = a.target_dir
 end
 
 function ANIM_FINISHERS.move(a)
@@ -321,10 +322,9 @@ function ANIM_FINISHERS.move(a)
 end
 
 function ANIM_FINISHERS.bump(a)
-  turtle.color = Color.red
   sfx.lose()
   start_anim("fail", ANIM.fail_pause)
-  turtle.anim.move_cmd = a.move_cmd
+  player.anim.move_cmd = a.move_cmd
 end
 
 function ANIM_FINISHERS.push(a)
@@ -336,7 +336,7 @@ function ANIM_FINISHERS.push(a)
   local new = pos_key(a.box_tc, a.box_tr)
   GS.box_map[new] = a.box
   check_goal()
-  if not turtle.anim then
+  if not player.anim then
     check_box_goals(old, new)
   end
 end
@@ -349,9 +349,9 @@ function next_level()
     love.event.quit()
   else
     maze = levels[level_index]
-    local saved = turtle.queue
+    local saved = player.queue
     start_level()
-    turtle.queue = saved
+    player.queue = saved
   end
 end
 
@@ -377,7 +377,7 @@ end
 
 function on_fail()
   if GS.won then
-    turtle.queue = { }
+    player.queue = { }
     next_level()
   else
     reset_level()
@@ -388,21 +388,21 @@ ANIM_FINISHERS.fail = on_fail
 ANIM_FINISHERS.win = on_win
 
 function finish_anim()
-  local a = turtle.anim
-  turtle.anim = nil
+  local a = player.anim
+  player.anim = nil
   ANIM_FINISHERS[a.kind](a)
 end
 
 -- Update
 
 function advance_anim(dt)
-  turtle.anim.time = turtle.anim.time + dt
-  if turtle.anim.kind == "win"
-       and turtle.anim.goal
+  player.anim.time = player.anim.time + dt
+  if player.anim.kind == "win"
+       and player.anim.goal
   then
-    turtle.anim.goal.radius = 1 - anim_progress()
+    player.anim.goal.radius = 1 - anim_progress()
   end
-  if turtle.anim.duration <= turtle.anim.time then
+  if player.anim.duration <= player.anim.time then
     finish_anim()
   end
 end
@@ -411,7 +411,7 @@ end
 
 function process_user_input()
   if GS.input:is_empty() then
-    if not turtle.anim and #turtle.queue == 0 then
+    if not player.anim and #player.queue == 0 then
       input_text("Commands:", string.lines(""))
     end
     return
@@ -427,7 +427,7 @@ end
 
 function love.update(dt)
   ensure_init()
-  if turtle.anim then
+  if player.anim then
     advance_anim(dt)
   elseif not GS.celebrating then
     execute_next()
