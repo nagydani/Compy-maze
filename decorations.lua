@@ -18,7 +18,7 @@ player_sprite = require("turtle")
 -- has no `background`, draw_walls falls back to a
 -- solid blue fill.
 
-bg1 = require("BACKGROUND_DRAFT_001")
-bg2 = require("BACKGROUND_DRAFT_002")
-bg3 = require("BACKGROUND_DRAFT_003")
-bg4 = require("BACKGROUND_DRAFT_04")
+bg1 = require("01_BACKG_DRAFT_1024X600")
+bg2 = require("02_BACKG_DRAFT_1024X600")
+bg3 = require("03_BACKG_DRAFT_1024X600")
+bg4 = require("04_BACKG_DRAFT_1024X600")
