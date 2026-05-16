@@ -26,7 +26,6 @@ one_turn = {
   "#N  #",
   "#####",
   legend = LEGEND_FULL,
-  grid = false,
   background = bg2
 }
 
@@ -35,9 +34,9 @@ one_turn = {
 two_turns = {
   "#####",
   "#*  #",
-  "# # #",
+  "# ###",
   "#   #",
-  "# # #",
+  "### #",
   "#  N#",
   "#####",
   legend = LEGEND_FULL,
@@ -47,9 +46,9 @@ two_turns = {
 two_turns2 = {
   "#####",
   "#*  #",
-  "# # #",
+  "# ###",
   "#   #",
-  "# # #",
+  "### #",
   "#  N#",
   "#####",
   controls = editor,
@@ -58,21 +57,7 @@ two_turns2 = {
   background = bg4
 }
 
--- Level 4: moderate complexity
-
-moderate_complexity = {
-  "######",
-  "#*## #",
-  "#    #",
-  "# ## #",
-  "#    #",
-  "#N   #",
-  "######",
-  legend = LEGEND_FULL,
-  background = bg1
-}
-
--- Level 5: longer path with dead ends
+-- Level 4: longer path with dead ends
 
 dead_ends = {
   "######",
@@ -82,9 +67,149 @@ dead_ends = {
   "#    #",
   "#N## #",
   "######",
-  progression = continue,
+  progression = celebrate,
   legend = LEGEND_FULL,
   background = bg2
+}
+
+
+maze5 = {
+  "#########",
+  "#   #   #",
+  "# # # # #",
+  "# #   # #",
+  "# ### # #",
+  "#N    #*#",
+  "#########",
+  legend = LEGEND_FULL,
+  background = bg3
+}
+
+maze6 = {
+  "#########",
+  "#E      #",
+  "### ### #",
+  "#   #   #",
+  "# ### ###",
+  "#     * #",
+  "#########",
+  legend = LEGEND_FULL,
+  background = bg1
+}
+
+maze7 = {
+  "##########",
+  "#   #    #",
+  "# # # ## #",
+  "# #   #W #",
+  "# ########",
+  "#       *#",
+  "##########",
+  legend = LEGEND_FULL,
+  background = bg3
+}
+
+maze8 = {
+  "##########",
+  "#E   #   #",
+  "# ## ### #",
+  "#        #",
+  "#### # ###",
+  "#    # * #",
+  "##########",
+  legend = LEGEND_FULL,
+  background = bg2
+}
+
+maze9 = {
+  "###########",
+  "#   #     #",
+  "# # # ### #",
+  "# #   #*  #",
+  "# ### ### #",
+  "#N  #     #",
+  "###########",
+  grid = false,
+  controls = "editor",
+  legend = LEGEND_FULL,
+  background = bg1
+}
+
+maze10 = {
+  "############",
+  "#   #      #",
+  "# # # #### #",
+  "# #   #    #",
+  "# ##### ####",
+  "#E    #   *#",
+  "############",
+  legend = LEGEND_FULL,
+  background = bg4
+}
+
+maze11 = {
+  "################",
+  "#       #      #",
+  "# ##### # #### #",
+  "#     # #    # #",
+  "##### # #### # #",
+  "#E    #      #*#",
+  "################",
+  legend = LEGEND_FULL,
+  background = bg1
+}
+
+maze12 = {
+  "###############",
+  "#      #      #",
+  "# #### # #### #",
+  "#    # #    # #",
+  "#### # #### # #",
+  "#E B        #*#",
+  "###############",
+  legend = LEGEND_FULL,
+  background = bg3
+}
+
+maze13 = {
+  "########",
+  "###G####",
+  "### ####",
+  "###B BG#",
+  "#G BN###",
+  "####B###",
+  "####G###",
+  "########",
+  legend = LEGEND_FULL,
+  progression = celebrate,
+  background = bg2
+}
+
+maze14 = {
+  "#########",
+  "#E  #####",
+  "# BB#####",
+  "# B ###G#",
+  "### ###G#",
+  "###    G#",
+  "##   #  #",
+  "##   ####",
+  "#########",
+  legend = LEGEND_FULL,
+  progression = celebrate,
+  background = bg4
+}
+
+maze15 = {
+  "##########",
+  "##     ###",
+  "##B###   #",
+  "# N B  B #",
+  "# GG# B ##",
+  "##GG#   ##",
+  "##########",
+  legend = LEGEND_FULL,
+  background = bg1
 }
 
 levels = {
@@ -92,6 +217,16 @@ levels = {
   one_turn,
   two_turns,
   two_turns2,
-  moderate_complexity,
-  dead_ends
+  dead_ends,
+  maze5,
+  maze6,
+  maze7,
+  maze8,
+  maze9,
+  maze10,
+  maze11,
+  maze12,
+  maze13,
+  maze14,
+  maze15
 }
