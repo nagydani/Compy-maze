@@ -72,7 +72,9 @@ player = {
   dir = "N",
   queue = { },
   anim = nil,
-  traces = { }
+  traces = { },
+  track_offset_l = 0,
+  track_offset_r = 0
 }
 
 function player_reset(col, row, dir)
@@ -82,6 +84,8 @@ function player_reset(col, row, dir)
   player.queue = { }
   player.anim = nil
   player.traces = { }
+  player.track_offset_l = 0
+  player.track_offset_r = 0
 end
 
 -- Command queue

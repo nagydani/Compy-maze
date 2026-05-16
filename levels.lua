@@ -94,7 +94,7 @@ maze6 = {
   "#     * #",
   "#########",
   legend = LEGEND_FULL,
-  background = bg1
+  background = bg5
 }
 
 maze7 = {

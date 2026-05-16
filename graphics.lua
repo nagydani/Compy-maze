@@ -51,14 +51,19 @@ function draw_grid()
   end
 end
 
--- Destinations are red circles
+-- Destinations drawn as target stars (TARGET_02 sprite)
 
 function draw_goals()
-  gfx.setColor(Color[Color.red])
   for _, g in pairs(GS.goal_map) do
     local x, y = cell_center(g.col, g.row)
-    local r = (GRID.cell / 2) * g.radius
-    gfx.circle("fill", x, y, r)
+    local fill = TARGET.cell_fill * g.radius
+    local s = sprite_scale(TARGET.sprite_w, TARGET.sprite_h, fill)
+    gfx.push("all")
+    gfx.translate(x, y)
+    gfx.scale(s, s)
+    gfx.translate(-TARGET.sprite_w / 2, -TARGET.sprite_h / 2)
+    target_sprite()
+    gfx.pop()
   end
 end
 
@@ -98,7 +103,19 @@ DIR_ANGLES = {
   W = -math.pi / 2
 }
 
--- Draw the player sprite at screen position (x, y)
+-- Draw one track layer with vertical offset, wrapped.
+
+function draw_track(sprite, off)
+  local step = TRACK.bar_step * GRID.scale
+  local dy = off % step
+  gfx.translate(0, dy - step)
+  sprite()
+  gfx.translate(0, step)
+  sprite()
+  gfx.translate(0, -dy)
+end
+
+-- Draw the player sprite at screen position (x, y).
 
 function draw_player_at(x, y, angle, scale)
   gfx.push("all")
@@ -106,8 +123,18 @@ function draw_player_at(x, y, angle, scale)
   gfx.rotate(angle)
   gfx.scale(scale, scale)
   gfx.translate(-PLAYER.sprite_w / 2, -PLAYER.sprite_h / 2)
-  player_sprite()
+  robot_back()
+  draw_track(robot_track_l, player.track_offset_l)
+  draw_track(robot_track_r, player.track_offset_r)
+  robot_front()
   gfx.pop()
+end
+
+-- Compute scale to fit sprite into cell with fill ratio
+
+function sprite_scale(sw, sh, fill)
+  local long_side = math.max(sw, sh)
+  return GRID.cell * fill / long_side
 end
 
 -- Player position during movement animation
@@ -298,10 +325,14 @@ function draw_box_goals()
 end
 
 function draw_boxes()
-  gfx.setColor(Color[Color.yellow])
   for _, b in pairs(GS.box_map) do
     local x, y = box_draw_pos(b)
-    gfx.rectangle("fill", x, y, GRID.cell, GRID.cell)
+    gfx.push("all")
+    gfx.translate(x, y)
+    local s = sprite_scale(BOX.sprite_w, BOX.sprite_h, BOX.cell_fill)
+    gfx.scale(s, s)
+    box_sprite()
+    gfx.pop()
   end
 end
 

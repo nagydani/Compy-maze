@@ -407,6 +407,37 @@ function advance_anim(dt)
   end
 end
 
+-- Track offset updaters, one per animation kind.
+-- Each adds a delta to player.track_offset_l/r
+-- based on the animation's duration and direction.
+
+TRACK_UPDATE = { }
+
+function TRACK_UPDATE.move(a, dt)
+  local sign = (a.move_cmd == "F") and 1 or -1
+  local d = sign * GRID.cell * dt / a.duration
+  player.track_offset_l = player.track_offset_l + d
+  player.track_offset_r = player.track_offset_r + d
+end
+
+TRACK_UPDATE.push = TRACK_UPDATE.move
+
+function TRACK_UPDATE.turn(a, dt)
+  local sign = (a.target_dir == TURN_RIGHT[a.from_dir])
+       and 1 or -1
+  local r = TRACK.radius * GRID.scale
+  local d = sign * r * (math.pi / 2) * dt / a.duration
+  player.track_offset_l = player.track_offset_l + d
+  player.track_offset_r = player.track_offset_r - d
+end
+
+function update_track_offsets(dt)
+  local fn = TRACK_UPDATE[player.anim.kind]
+  if fn then
+    fn(player.anim, dt)
+  end
+end
+
 -- Editor input processing
 
 function process_user_input()
@@ -429,6 +460,7 @@ function love.update(dt)
   ensure_init()
   if player.anim then
     advance_anim(dt)
+    update_track_offsets(dt)
   elseif not GS.celebrating then
     execute_next()
   end
@@ -456,7 +488,15 @@ end
 
 love.mousepressed = SYSTEM_KEYS.menu
 
+function is_shift_down()
+  local d = love.keyboard.isDown
+  return d("lshift") or d("rshift")
+end
+
 function love.keypressed(k)
+  if k == "escape" and not is_shift_down() then
+    return
+  end
   if GS.celebrating and k == "return" then
     next_level()
   else
