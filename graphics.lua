@@ -104,17 +104,19 @@ DIR_ANGLES = {
   W = -math.pi / 2
 }
 
--- Draw one track layer with vertical offset, wrapped.
+-- Draw three copies of a track for wrap coverage.
 
-function draw_track(sprite, off)
+function draw_track_bars(sprite, off)
   local step = TRACK.bar_step
   local half = step / 2
   local dy = (off + half) % step - half
-  gfx.translate(0, dy)
+  gfx.translate(0, dy - step)
   sprite()
-  gfx.translate(0, -step)
+  gfx.translate(0, step)
   sprite()
-  gfx.translate(0, step - dy)
+  gfx.translate(0, step)
+  sprite()
+  gfx.translate(0, -step - dy)
 end
 
 -- Draw the player sprite at screen position (x, y).
@@ -126,8 +128,11 @@ function draw_player_at(x, y, angle, scale)
   gfx.scale(scale, scale)
   gfx.translate(-PLAYER.sprite_w / 2, -PLAYER.sprite_h / 2)
   robot_back()
-  draw_track(robot_track_l, player.track_offset_l)
-  draw_track(robot_track_r, player.track_offset_r)
+  gfx.stencil(robot_back, "replace", 1)
+  gfx.setStencilTest("greater", 0)
+  draw_track_bars(robot_track_l, player.track_offset_l)
+  draw_track_bars(robot_track_r, player.track_offset_r)
+  gfx.setStencilTest()
   robot_front()
   gfx.pop()
 end
