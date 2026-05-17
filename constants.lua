@@ -19,17 +19,16 @@ PLAYER = {
   cell_fill = 0.56
 }
 
--- Track animation parameters. All measurements in
--- ROBOT_03 sprite coordinates (viewBox 800 by 800).
+-- Track animation parameters in transpiled sprite
+-- coordinates (100 x 100 box).
 -- radius: distance from track center to robot
--- rotation center. left track center x ~ 113,
--- robot center x = 400, so radius ~ 287.
+-- rotation axis (sprite center).
 -- bar_step: vertical distance between adjacent
 -- bars in a track.
 
 TRACK = {
-  radius = 287,
-  bar_step = 116
+  radius = 35.9,
+  bar_step = 14.5
 }
 
 -- Box sprite box. cell_fill = 1: box fully covers
@@ -41,8 +40,7 @@ BOX = {
   cell_fill = 1
 }
 
--- Target sprite box. cell_fill controls the size of
--- the destination star inside its cell.
+-- Target sprite box.
 
 TARGET = {
   sprite_w = 100,

@@ -37,7 +37,7 @@ end
 
 function draw_grid()
   if not cur_grid then
-    return
+    return 
   end
   gfx.setColor(Color[Color.white + Color.bright])
   gfx.setLineWidth(1)
@@ -51,17 +51,18 @@ function draw_grid()
   end
 end
 
--- Destinations drawn as target stars (TARGET_02 sprite)
+-- Destination targets
 
 function draw_goals()
   for _, g in pairs(GS.goal_map) do
     local x, y = cell_center(g.col, g.row)
     local fill = TARGET.cell_fill * g.radius
-    local s = sprite_scale(TARGET.sprite_w, TARGET.sprite_h, fill)
+    local w, h = TARGET.sprite_w, TARGET.sprite_h
+    local s = sprite_scale(w, h, fill)
     gfx.push("all")
     gfx.translate(x, y)
     gfx.scale(s, s)
-    gfx.translate(-TARGET.sprite_w / 2, -TARGET.sprite_h / 2)
+    gfx.translate(-w / 2, -h / 2)
     target_sprite()
     gfx.pop()
   end
@@ -106,13 +107,14 @@ DIR_ANGLES = {
 -- Draw one track layer with vertical offset, wrapped.
 
 function draw_track(sprite, off)
-  local step = TRACK.bar_step * GRID.scale
-  local dy = off % step
-  gfx.translate(0, dy - step)
+  local step = TRACK.bar_step
+  local half = step / 2
+  local dy = (off + half) % step - half
+  gfx.translate(0, dy)
   sprite()
-  gfx.translate(0, step)
+  gfx.translate(0, -step)
   sprite()
-  gfx.translate(0, -dy)
+  gfx.translate(0, step - dy)
 end
 
 -- Draw the player sprite at screen position (x, y).
@@ -327,9 +329,10 @@ end
 function draw_boxes()
   for _, b in pairs(GS.box_map) do
     local x, y = box_draw_pos(b)
+    local w, h = BOX.sprite_w, BOX.sprite_h
+    local s = sprite_scale(w, h, BOX.cell_fill)
     gfx.push("all")
     gfx.translate(x, y)
-    local s = sprite_scale(BOX.sprite_w, BOX.sprite_h, BOX.cell_fill)
     gfx.scale(s, s)
     box_sprite()
     gfx.pop()

@@ -15,17 +15,7 @@ sfx = compy.audio
 
 -- Grid
 
-GRID = {
-  cell = 0,
-  offset_x = 0,
-  offset_y = 0,
-  rows = 0,
-  cols = 0,
-  scale = 0,
-  bump_dist = 0,
-  trace_r = 0,
-  push_path = 0
-}
+GRID = { }
 
 function init_grid(rows, cols)
   GRID.rows = rows
@@ -414,8 +404,8 @@ end
 TRACK_UPDATE = { }
 
 function TRACK_UPDATE.move(a, dt)
-  local sign = (a.move_cmd == "F") and 1 or -1
-  local d = sign * GRID.cell * dt / a.duration
+  local sign = (a.move_cmd == "F") and -1 or 1
+  local d = sign * GRID.cell * dt / (a.duration * GRID.scale)
   player.track_offset_l = player.track_offset_l + d
   player.track_offset_r = player.track_offset_r + d
 end
@@ -423,12 +413,11 @@ end
 TRACK_UPDATE.push = TRACK_UPDATE.move
 
 function TRACK_UPDATE.turn(a, dt)
-  local sign = (a.target_dir == TURN_RIGHT[a.from_dir])
-       and 1 or -1
-  local r = TRACK.radius * GRID.scale
-  local d = sign * r * (math.pi / 2) * dt / a.duration
-  player.track_offset_l = player.track_offset_l + d
-  player.track_offset_r = player.track_offset_r - d
+  local right = a.target_dir == TURN_RIGHT[a.from_dir]
+  local sign = right and 1 or -1
+  local d = TRACK.radius * (math.pi / 2) * dt / a.duration
+  player.track_offset_l = player.track_offset_l - sign * d
+  player.track_offset_r = player.track_offset_r + sign * d
 end
 
 function update_track_offsets(dt)
@@ -495,7 +484,7 @@ end
 
 function love.keypressed(k)
   if k == "escape" and not is_shift_down() then
-    return
+    return 
   end
   if GS.celebrating and k == "return" then
     next_level()
