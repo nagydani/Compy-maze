@@ -130,7 +130,7 @@ maze9 = {
   "#N  #     #",
   "###########",
   grid = false,
-  controls = "editor",
+  controls = editor,
   legend = LEGEND_FULL,
   background = bg1
 }

@@ -263,6 +263,55 @@ function draw_legend()
   gfx.print(cur_legend, (w - fw) - fh, (h - th) - fh)
 end
 
+-- Letters of currently defined non-empty macros,
+-- shown above the legend in up to 3 lines of 8.
+
+function macro_letters()
+  local letters = { }
+  for k, v in pairs(macros) do
+    if 0 < #v then
+      table.insert(letters, k)
+    end
+  end
+  table.sort(letters)
+  return letters
+end
+
+function macro_lines(letters)
+  local n = MACRO_LINE_LEN
+  local lines = { }
+  for i = 1, #letters, n do
+    local j = math.min(i + n - 1, #letters)
+    table.insert(lines, table.concat(letters, "", i, j))
+  end
+  return lines
+end
+
+function legend_lines()
+  if not cur_legend then
+    return 0
+  end
+  local _, n = cur_legend:gsub("\n", "")
+  return n + 1
+end
+
+function draw_macros_list()
+  local letters = macro_letters()
+  local lines = macro_lines(letters)
+  local font = gfx.getFont()
+  local fh = font:getHeight()
+  local w, h = gfx.getDimensions()
+  local x = (w - fh) - font:getWidth(
+    string.rep("X", MACRO_LINE_LEN)
+  )
+  local y = h - fh * (1 + legend_lines() + #lines)
+  gfx.setColor(Color[Color.black])
+  for _, line in ipairs(lines) do
+    gfx.print(line, x, y)
+    y = y + fh
+  end
+end
+
 -- Dim overlay for macro recording
 
 function draw_dim()
@@ -344,18 +393,63 @@ function draw_boxes()
   end
 end
 
+-- Command echo: show entered lines on editor levels,
+-- highlight the symbol currently being executed.
+
+function draw_echo_line(line, line_idx, y)
+  local font = gfx.getFont()
+  local a = player.anim
+  local hi = a and a.line == line_idx and a.col
+  local x = 0
+  for col = 1, #line do
+    local ch = line:sub(col, col)
+    local alpha = (col == hi) and 1 or ECHO_DIM_ALPHA
+    gfx.setColor(1, 1, 1, alpha)
+    gfx.print(ch, x, y)
+    x = x + font:getWidth(ch)
+  end
+end
+
+function draw_echo()
+  if cur_controls ~= editor then
+    return 
+  end
+  local fh = gfx.getFont():getHeight()
+  local start = math.max(1, (#echo_lines - MAX_ECHO_LINES) + 1)
+  for i = start, #echo_lines do
+    draw_echo_line(echo_lines[i], i, (i - start) * fh)
+  end
+end
+
 -- Celebrate message
 
+function celebrate_layout()
+  local font = gfx.getFont()
+  local pw = font:getWidth(CELEBRATE_PREFIX)
+  local sw = font:getWidth(CELEBRATE_SUFFIX)
+  return pw, sw, width.tab, height.tab
+end
+
 function draw_celebrate()
-  if not GS.celebrating then
+  if not (GS.celebrating or GS.won) then
     return 
   end
   local w, h = gfx.getDimensions()
   local font = gfx.getFont()
-  local fw = font:getWidth(CELEBRATE_TEXT)
-  local fh = font:getHeight()
+  local pw, sw, kw, kh = celebrate_layout()
+  local x = (((w - pw) - kw) - sw) / 2
+  local ky = (h - kh) / 2
+  local ty = ky + (kh - font:getHeight()) / 2
   gfx.setColor(Color[Color.white + Color.bright])
-  gfx.print(CELEBRATE_TEXT, (w - fw) / 2, (h - fh) / 2)
+  gfx.print(CELEBRATE_PREFIX, x, ty)
+  draw_key(x + pw, ky, "tab")
+  gfx.setFont(font)
+  gfx.print(CELEBRATE_SUFFIX, x + pw + kw, ty)
+end
+
+function draw_player(scale)
+  local x, y = current_pos()
+  draw_player_at(x, y, current_angle(), scale)
 end
 
 -- Draw everything on screen
@@ -368,10 +462,10 @@ function draw_scene()
   draw_goals()
   draw_traces()
   draw_boxes()
-  local x, y = current_pos()
-  local angle = current_angle()
-  draw_player_at(x, y, angle, GRID.scale)
+  draw_player(GRID.scale)
+  draw_echo()
   draw_legend()
+  draw_macros_list()
   draw_macro_ui()
   draw_celebrate()
 end

@@ -13,6 +13,15 @@ require("script")
 
 sfx = compy.audio
 
+-- Echo of entered commands (one line per Enter).
+
+echo_lines = { }
+
+-- Marker for queue entries with no source (keyboard
+-- input on non-editor levels).
+
+NO_REF = { }
+
 -- Grid
 
 GRID = { }
@@ -114,6 +123,7 @@ function parse_maze()
   GS.filled_count = 0
   GS.won = false
   GS.celebrating = false
+  echo_lines = { }
   for r, row in ipairs(maze) do
     for c = 1, #row do
       parse_cell(row:sub(c, c), c, r)
@@ -216,13 +226,14 @@ end
 
 -- Animation execution
 
-function start_turn(cmd)
-  start_anim("turn", ANIM.turn_time)
+function start_turn(cmd, ref)
+  start_anim("turn", ANIM.turn_time, ref)
   if cmd == "R" then
     player.anim.target_dir = TURN_RIGHT[player.dir]
   else
     player.anim.target_dir = TURN_LEFT[player.dir]
   end
+  player.last_turn = cmd
 end
 
 function move_cmd_target(cmd)
@@ -234,14 +245,14 @@ function move_cmd_target(cmd)
   return player.col + d.x, player.row + d.y
 end
 
-function start_bump(cmd)
+function start_bump(cmd, ref)
   local t = ANIM.move_time * ANIM.bump_frac
-  start_anim("bump", t)
+  start_anim("bump", t, ref)
   player.anim.move_cmd = cmd
 end
 
-function start_forward(cmd, tc, tr)
-  start_anim("move", ANIM.move_time)
+function start_forward(cmd, ref, tc, tr)
+  start_anim("move", ANIM.move_time, ref)
   player.anim.target_col = tc
   player.anim.target_row = tr
   player.anim.move_cmd = cmd
@@ -251,9 +262,9 @@ function push_duration()
   return GRID.push_path * ANIM.move_time / GRID.cell
 end
 
-function start_push(cmd, box)
+function start_push(cmd, ref, box)
   local d = DIR_DELTA[push_dir(cmd)]
-  start_anim("push", push_duration())
+  start_anim("push", push_duration(), ref)
   sfx.jump()
   local anim = player.anim
   local col, row = box.col, box.row
@@ -265,24 +276,24 @@ function start_push(cmd, box)
   anim.box_tr = row + d.y
 end
 
-function try_push(cmd, box, tc, tr)
-  if can_push(tc, tr, push_dir(cmd)) then
-    start_push(cmd, box)
+function try_push(cmd, ref, box)
+  if can_push(box.col, box.row, push_dir(cmd)) then
+    start_push(cmd, ref, box)
   else
-    start_bump(cmd)
+    start_bump(cmd, ref)
   end
 end
 
-function start_move(cmd)
+function start_move(cmd, ref)
   local tc, tr = move_cmd_target(cmd)
   if is_wall(tc, tr) then
-    start_bump(cmd)
+    start_bump(cmd, ref)
   else
     local box = box_at(tc, tr)
     if box then
-      try_push(cmd, box, tc, tr)
+      try_push(cmd, ref, box)
     else
-      start_forward(cmd, tc, tr)
+      start_forward(cmd, ref, tc, tr)
     end
   end
 end
@@ -315,6 +326,8 @@ function ANIM_FINISHERS.bump(a)
   sfx.lose()
   start_anim("fail", ANIM.fail_pause)
   player.anim.move_cmd = a.move_cmd
+  player.anim.line = a.line
+  player.anim.col = a.col
 end
 
 function ANIM_FINISHERS.push(a)
@@ -339,9 +352,11 @@ function next_level()
     love.event.quit()
   else
     maze = levels[level_index]
-    local saved = player.queue
+    local saved_q = player.queue
+    local saved_r = player.queue_refs
     start_level()
-    player.queue = saved
+    player.queue = saved_q
+    player.queue_refs = saved_r
   end
 end
 
@@ -358,10 +373,10 @@ function on_win()
 end
 
 function execute_next()
-  local cmd = dequeue()
+  local cmd, ref = dequeue()
   local fn = CMD_HANDLERS[cmd]
   if fn then
-    fn(cmd)
+    fn(cmd, ref)
   end
 end
 
@@ -429,15 +444,29 @@ end
 
 -- Editor input processing
 
+function record_echo(lines)
+  for _, line in ipairs(lines) do
+    table.insert(echo_lines, line)
+  end
+end
+
+function rearm_input()
+  if not player.anim and #(player.queue) == 0 then
+    input_text("Commands:", string.lines(""))
+  end
+end
+
 function process_user_input()
   if GS.input:is_empty() then
-    if not player.anim and #player.queue == 0 then
-      input_text("Commands:", string.lines(""))
-    end
-    return
+    rearm_input()
+    return 
   end
   local text = string.unlines(GS.input())
-  if not process_input(string.lines(text)) then
+  local lines = string.lines(text)
+  local offset = #echo_lines
+  if process_input(lines, offset) then
+    record_echo(lines)
+  else
     sfx.wrong()
     input_text("Commands:", string.lines(text))
   end
@@ -445,8 +474,20 @@ end
 
 -- Main Loop
 
+tab_was_down = false
+
+function poll_tab_progression()
+  local down = love.keyboard.isDown("tab")
+  if down and not tab_was_down and (GS.celebrating or GS.won)
+       then
+    next_level()
+  end
+  tab_was_down = down
+end
+
 function love.update(dt)
   ensure_init()
+  poll_tab_progression()
   if player.anim then
     advance_anim(dt)
     update_track_offsets(dt)
@@ -486,15 +527,11 @@ function love.keypressed(k)
   if k == "escape" and not is_shift_down() then
     return 
   end
-  if GS.celebrating and k == "return" then
-    next_level()
-  else
-    local fn = SYSTEM_KEYS[k]
-    if fn then
-      fn()
-    elseif ctrl_pressed then
-      ctrl_pressed(k)
-    end
+  local fn = SYSTEM_KEYS[k]
+  if fn then
+    fn()
+  elseif ctrl_pressed then
+    ctrl_pressed(k)
   end
 end
 

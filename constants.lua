@@ -62,6 +62,18 @@ LEGEND_FULL = readfile("legend.txt")
 
 MAX_MACRO_LEN = 7
 
+-- Macro letters list above legend
+
+MACRO_LINE_LEN = 8
+
+-- Maximum echo lines visible on screen.
+
+MAX_ECHO_LINES = 14
+
+-- Alpha for non-highlighted echo characters.
+
+ECHO_DIM_ALPHA = 0.4
+
 -- Primitive commands 
 
 PRIMITIVES = {
@@ -76,6 +88,7 @@ PRIMITIVES = {
   ["."] = true
 }
 
--- Celebrate message
+-- Celebrate message: prefix + Tab keycap + suffix
 
-CELEBRATE_TEXT = "Congratulations! Press Enter to proceed."
+CELEBRATE_PREFIX = "Congratulations! Press "
+CELEBRATE_SUFFIX = " to proceed."

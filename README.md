@@ -74,6 +74,15 @@ You can type several commands at once, for example
 SSEEF, and they will run in order when you press
 Enter.
 
+Entered command lines are echoed on the screen one
+under another with reduced opacity, so the game
+remains visible beneath. Up to 14 most recent lines
+are shown; older lines scroll off the top. The
+command currently being executed is highlighted
+within its source line — including the original
+macro letter or loop digit, not the expanded
+primitive.
+
 #### Repeating Commands
 
 Put a number before a command to repeat it:
@@ -122,6 +131,15 @@ maze resets so you can try again.
 When you reach the red circle, you hear a victory
 sound and the circle disappears.
 
+## Absolute Direction Reversal
+
+When you send the turtle to the direction directly
+opposite to where it currently faces (for example N
+when facing S), it performs a 180-degree turn and
+then moves one step forward. The turn goes in the
+same direction as the last turn the turtle made; if
+no turn has been made yet, the turn is clockwise.
+
 ## Pushing Boxes
 
 Some levels have yellow boxes. You can push a box by
@@ -138,6 +156,14 @@ Some levels have cyan squares on the floor. Push
 every yellow box onto a cyan square to win! You hear
 a victory sound when all boxes are in place.
 
+## Macro Letters
+
+Above the legend, every defined non-empty shortcut
+is shown by its letter. The list grows as you define
+shortcuts and shrinks when you erase them. It spans
+up to 3 lines of up to 8 letters, sorted
+alphabetically. The list persists across levels.
+
 ## Level Progression
 
 The game has multiple levels. Each level can have
@@ -152,17 +178,23 @@ also carry over.
 
 ### Celebrate
 
-Upon winning, all remaining commands are discarded.
-A congratulations message appears on screen. Press
-Enter to proceed to the next level.
+Upon winning, a congratulations message appears on
+screen with the Tab key shown as a keycap. Press Tab
+to proceed to the next level. A win is counted only
+if the command queue is empty at the moment the
+turtle reaches the goal — otherwise the remaining
+commands continue to execute without winning.
 
 ### Continue
 
 Upon winning, the player stays on the same level
-and can continue entering commands. Crashing into
-a wall after winning advances to the next level
-and discards remaining commands. The "." command
-works as usual.
+and can continue entering commands. The same
+congratulations message appears and remains visible
+while further commands run. Press Tab at any time
+after winning to advance to the next level.
+Crashing into a wall after winning also advances to
+the next level and discards remaining commands. The
+"." command works as usual.
 
 ## Skip Level
 
@@ -191,6 +223,9 @@ be toggled on or off by pressing the Menu key.
 The maze is shown in the center. Walls can show a
 decorative background picture, or a plain blue fill
 if the level does not set one. Open paths are white.
-The bottom right corner shows all available commands.
+The bottom right corner shows all available commands,
+with defined macro letters listed just above the
+legend. On editor levels, the upper-left area shows
+the echo of entered commands.
 
 Press Escape to quit.

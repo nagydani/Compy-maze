@@ -28,11 +28,15 @@ function portal()
 end
 
 function celebrate()
-  player.queue = { }
-  ctrl_update = nil
-  GS.celebrating = true
+  if #(player.queue) == 0 then
+    ctrl_update = nil
+    GS.celebrating = true
+  end
 end
 
 function continue()
+  if 0 < #(player.queue) then
+    return 
+  end
   GS.won = true
 end

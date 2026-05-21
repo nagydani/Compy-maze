@@ -71,10 +71,12 @@ player = {
   row = 1,
   dir = "N",
   queue = { },
+  queue_refs = { },
   anim = nil,
   traces = { },
   track_offset_l = 0,
-  track_offset_r = 0
+  track_offset_r = 0,
+  last_turn = nil
 }
 
 function player_reset(col, row, dir)
@@ -82,10 +84,12 @@ function player_reset(col, row, dir)
   player.row = row
   player.dir = dir
   player.queue = { }
+  player.queue_refs = { }
   player.anim = nil
   player.traces = { }
   player.track_offset_l = 0
   player.track_offset_r = 0
+  player.last_turn = nil
 end
 
 -- Command queue
@@ -94,6 +98,7 @@ function process_cmd(k)
   local cmd = string.upper(k)
   if string.find("NSEWFBLR.", cmd) then
     table.insert(player.queue, cmd)
+    table.insert(player.queue_refs, NO_REF)
     return true
   end
   return false
@@ -107,28 +112,45 @@ end
 
 -- Dequeue the next relative command
 
-function dequeue()
-  local cmd = table.remove(player.queue, 1)
-  if not DIR_DELTA[cmd] then
-    return cmd
-  end
+function queue_unshift(cmd, ref)
+  table.insert(player.queue, 1, cmd)
+  table.insert(player.queue_refs, 1, ref)
+end
+
+function dequeue_absolute(cmd, ref)
   local rel = compile_absolute(cmd, player.dir)
-  if rel == "R" or rel == "L" then
-    table.insert(player.queue, 1, "F")
+  if rel == "F" then
+    return rel
+  end
+  queue_unshift("F", ref)
+  if rel == "B" then
+    rel = player.last_turn or "R"
+    queue_unshift(rel, ref)
   end
   return rel
 end
 
+function dequeue()
+  local cmd = table.remove(player.queue, 1)
+  local ref = table.remove(player.queue_refs, 1)
+  if DIR_DELTA[cmd] then
+    cmd = dequeue_absolute(cmd, ref)
+  end
+  return cmd, ref
+end
+
 -- Animation state
 
-function start_anim(kind, duration)
+function start_anim(kind, duration, ref)
   player.anim = {
     kind = kind,
     time = 0,
     duration = duration,
     from_col = player.col,
     from_row = player.row,
-    from_dir = player.dir
+    from_dir = player.dir,
+    line = ref and ref.line,
+    col = ref and ref.col
   }
 end
 
