@@ -185,7 +185,8 @@ function check_box_goals(old_key, new_key)
   end
   if 0 < GS.box_goal_count
        and GS.filled_count == GS.box_goal_count
-  then
+       and #player.queue == 0  
+    then
     win_level(nil, sfx.wow)
   end
 end
