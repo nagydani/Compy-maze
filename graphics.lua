@@ -399,11 +399,12 @@ end
 function draw_echo_line(line, line_idx, y)
   local font = gfx.getFont()
   local a = player.anim
-  local hi = a and a.line == line_idx and a.col
+  local on = a and a.line == line_idx
   local x = 0
   for col = 1, #line do
     local ch = line:sub(col, col)
-    local alpha = (col == hi) and 1 or ECHO_DIM_ALPHA
+    local lit = on and a.col_from <= col and col <= a.col_to
+    local alpha = lit and 1 or ECHO_DIM_ALPHA
     gfx.setColor(1, 1, 1, alpha)
     gfx.print(ch, x, y)
     x = x + font:getWidth(ch)

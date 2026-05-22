@@ -171,7 +171,7 @@ end
 function check_goal()
   local k = pos_key(player.col, player.row)
   local g = GS.goal_map[k]
-  if g then
+  if g and #player.queue == 0 then
     win_level(g, sfx.win)
   end
 end
@@ -327,7 +327,8 @@ function ANIM_FINISHERS.bump(a)
   start_anim("fail", ANIM.fail_pause)
   player.anim.move_cmd = a.move_cmd
   player.anim.line = a.line
-  player.anim.col = a.col
+  player.anim.col_from = a.col_from
+  player.anim.col_to = a.col_to
 end
 
 function ANIM_FINISHERS.push(a)

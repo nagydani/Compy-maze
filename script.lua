@@ -58,9 +58,10 @@ function validate_input(lines)
 end
 
 -- Expand a line into primitives with back pointers.
--- Returns { {cmd = ch, col = N}, ... } where N is
--- the column in the source line where the symbol
--- (macro letter, looped char, or primitive) lives.
+-- Returns { {cmd = ch, col_from = F, col_to = T},
+-- ... } where F..T span the source columns of the
+-- symbol — macro letter, loop digit-letter pair,
+-- or primitive.
 
 function expand_with_refs(line)
   local prims = { }
@@ -70,7 +71,7 @@ function expand_with_refs(line)
     if ch:match("%d") then
       i = expand_loop_at(line, i, prims)
     else
-      append_one(prims, ch, i)
+      append_one(prims, ch, i, i)
       i = i + 1
     end
   end
@@ -83,27 +84,29 @@ function expand_loop_at(line, i, prims)
   local col = i + #num_str
   local ch = line:sub(col, col)
   for _ = 1, n do
-    append_one(prims, ch, col)
+    append_one(prims, ch, i, col)
   end
   return col + 1
 end
 
-function append_one(prims, ch, col)
+function append_one(prims, ch, col_from, col_to)
   if macros[ch] then
-    append_macro(prims, macros[ch], col)
+    append_macro(prims, macros[ch], col_from, col_to)
   else
     table.insert(prims, {
-      cmd = ch,
-      col = col
+      cmd = ch, 
+      col_from = col_from, 
+      col_to = col_to
     })
   end
 end
 
-function append_macro(prims, body, col)
+function append_macro(prims, body, col_from, col_to)
   for j = 1, #body do
     table.insert(prims, {
       cmd = body:sub(j, j),
-      col = col
+      col_from = col_from,
+      col_to = col_to
     })
   end
 end
@@ -114,7 +117,8 @@ function enqueue_commands(line_idx, line)
     table.insert(player.queue, p.cmd)
     table.insert(player.queue_refs, {
       line = line_idx,
-      col = p.col
+      col_from = p.col_from,
+      col_to = p.col_to
     })
     if p.cmd ~= "." then
       sfx.ping()

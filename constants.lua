@@ -68,7 +68,7 @@ MACRO_LINE_LEN = 8
 
 -- Maximum echo lines visible on screen.
 
-MAX_ECHO_LINES = 14
+MAX_ECHO_LINES = 16
 
 -- Alpha for non-highlighted echo characters.
 

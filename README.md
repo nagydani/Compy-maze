@@ -76,12 +76,13 @@ Enter.
 
 Entered command lines are echoed on the screen one
 under another with reduced opacity, so the game
-remains visible beneath. Up to 14 most recent lines
+remains visible beneath. Up to 16 most recent lines
 are shown; older lines scroll off the top. The
 command currently being executed is highlighted
-within its source line — including the original
-macro letter or loop digit, not the expanded
-primitive.
+within its source line. For loops like 3R, both the
+count and the operation are highlighted; for macros,
+the macro letter is highlighted, not the expanded
+body.
 
 #### Repeating Commands
 
@@ -128,8 +129,10 @@ Moving backward leaves no trail.
 If the turtle hits a wall, you hear a sound and the
 maze resets so you can try again.
 
-When you reach the red circle, you hear a victory
-sound and the circle disappears.
+When you reach the red circle with no commands left
+to run, you hear a victory sound and the circle
+disappears. If more commands are queued, the turtle
+passes through without triggering the win.
 
 ## Absolute Direction Reversal
 

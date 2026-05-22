@@ -150,7 +150,8 @@ function start_anim(kind, duration, ref)
     from_row = player.row,
     from_dir = player.dir,
     line = ref and ref.line,
-    col = ref and ref.col
+    col_from = ref and ref.col_from,
+    col_to = ref and ref.col_to
   }
 end
 
