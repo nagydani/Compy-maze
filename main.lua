@@ -316,6 +316,7 @@ ANIM_FINISHERS = { }
 
 function ANIM_FINISHERS.turn(a)
   player.dir = a.target_dir
+  check_goal()
 end
 
 function ANIM_FINISHERS.move(a)
@@ -492,9 +493,10 @@ function love.update(dt)
   poll_tab_progression()
   if player.anim then
     advance_anim(dt)
-    update_track_offsets(dt)
   end
-  if not player.anim and not GS.celebrating then
+  if player.anim then
+    update_track_offsets(dt)
+  elseif not GS.celebrating then
     execute_next()
   end
   if ctrl_update then
