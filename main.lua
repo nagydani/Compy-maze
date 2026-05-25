@@ -499,8 +499,7 @@ function love.update(dt)
   end
   if player.anim then
     update_track_offsets(dt)
-  end
-  if not player.anim and not GS.celebrating then
+  elseif not GS.celebrating then
     execute_next()
   end
   if ctrl_update then
