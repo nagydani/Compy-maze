@@ -185,8 +185,8 @@ function check_box_goals(old_key, new_key)
   end
   if 0 < GS.box_goal_count
        and GS.filled_count == GS.box_goal_count
-       and #player.queue == 0  
-    then
+       and #player.queue == 0
+  then
     win_level(nil, sfx.wow)
   end
 end
@@ -481,9 +481,12 @@ tab_was_down = false
 
 function poll_tab_progression()
   local down = love.keyboard.isDown("tab")
-  if down and not tab_was_down and (GS.celebrating or GS.won)
-       then
+  local edge = down and not tab_was_down
+  if edge and (GS.celebrating or GS.won) then
     next_level()
+  elseif edge then
+    sfx.lose()
+    reset_level()
   end
   tab_was_down = down
 end
@@ -496,7 +499,8 @@ function love.update(dt)
   end
   if player.anim then
     update_track_offsets(dt)
-  elseif not GS.celebrating then
+  end
+  if not player.anim and not GS.celebrating then
     execute_next()
   end
   if ctrl_update then
